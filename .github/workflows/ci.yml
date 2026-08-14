@@ -37,7 +37,7 @@ jobs:
         run: npm run build
 
   # ── Backend Checks ──
-backend:
+  backend:
     name: Backend — Lint & Validate
     runs-on: ubuntu-latest
     defaults:
