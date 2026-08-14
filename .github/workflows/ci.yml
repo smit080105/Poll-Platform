@@ -37,12 +37,15 @@ jobs:
         run: npm run build
 
   # ── Backend Checks ──
-  backend:
+backend:
     name: Backend — Lint & Validate
     runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: ./backend
+    env:
+      # Dummy value — schema validation only checks syntax, it never connects.
+      DATABASE_URL: "postgresql://user:password@localhost:5432/pollwave"
 
     steps:
       - name: Checkout
