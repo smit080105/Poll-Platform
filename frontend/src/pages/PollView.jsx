@@ -51,8 +51,7 @@ function PollView() {
   useEffect(() => {
     if (!poll) return;
 
-    const socket = io(window.location.origin, { transports: ['websocket', 'polling'] });
-    socket.emit('join-poll', poll.id);
+ const socket = io(import.meta.env.VITE_API_URL || 'http://localhost:5000', { transports: ['websocket', 'polling'] });    socket.emit('join-poll', poll.id);
 
     socket.on('vote-update', (data) => {
       if (data.pollId === poll.id) {
