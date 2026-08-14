@@ -1,0 +1,54 @@
+# ============================================
+# PollWave — Git Ignore
+# ============================================
+
+# ── Dependencies ──
+node_modules/
+.pnp
+.pnp.js
+
+# ── Build outputs ──
+dist/
+build/
+.next/
+out/
+
+# ── Environment variables ──
+.env
+.env.local
+.env.*.local
+
+# ── Prisma ──
+*.db
+*.db-journal
+
+# ── Logs ──
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# ── IDE ──
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# ── OS ──
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# ── Docker ──
+docker/data/
+
+# ── Testing ──
+coverage/
+.nyc_output/
+
+# ── Misc ──
+*.tgz
+.cache/

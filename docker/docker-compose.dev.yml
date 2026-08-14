@@ -1,0 +1,43 @@
+# ============================================
+# PollWave — Development Docker Compose
+# ============================================
+# Usage: docker compose -f docker/docker-compose.dev.yml up --build
+
+services:
+  # ── Backend (Dev — hot reload with nodemon) ──
+  backend:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.backend
+    container_name: pollwave-backend-dev
+    command: npx nodemon src/index.js
+    environment:
+      DATABASE_URL: "file:./dev.db"
+      JWT_SECRET: dev-secret-key-not-for-production
+      PORT: 5000
+      CLIENT_URL: http://localhost:5173
+      NODE_ENV: development
+    ports:
+      - "5000:5000"
+    volumes:
+      - ../backend/src:/app/src
+      - ../backend/prisma:/app/prisma
+
+  # ── Frontend (Dev — Vite dev server) ──
+  frontend:
+    image: node:20-alpine
+    container_name: pollwave-frontend-dev
+    working_dir: /app
+    command: sh -c "npm install && npm run dev -- --host 0.0.0.0"
+    environment:
+      VITE_API_URL: http://backend:5000
+    ports:
+      - "5173:5173"
+    volumes:
+      - ../frontend:/app
+      - frontend_node_modules:/app/node_modules
+    depends_on:
+      - backend
+
+volumes:
+  frontend_node_modules:
