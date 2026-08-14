@@ -15,7 +15,7 @@ Tamper-proof, one-person-one-vote integrity built right in.
 </div>
 
 ---
-
+<!-- CI/CD pipeline verified working -->
 ## ✨ Features
 
 - 🔗 **Instant Shareable Links** — Every poll gets a unique short URL
