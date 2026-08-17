@@ -580,6 +580,16 @@ textarea.form-input {
   background: var(--border-glass);
 }
 
+/* ── Footer ── */
+ .landing-footer {
+  text-align: center;
+  padding: 32px 24px 40px;
+  color: var(--text-muted);
+  font-size: 14px;
+  border-top: 1px solid var(--border-glass);
+  margin-top: 40px;
+ }
+
 /* ── Landing Page ── */
 .landing {
   min-height: calc(100vh - 72px);
