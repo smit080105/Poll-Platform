@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
-import { UserPlus, AlertCircle } from 'lucide-react';
+import { UserPlus, AlertCircle, Eye, EyeOff } from 'lucide-react';
 
 function Register() {
   const { register } = useAuth();
@@ -13,6 +13,7 @@ function Register() {
   const [role, setRole] = useState('PARTICIPANT');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -84,16 +85,26 @@ function Register() {
 
           <div className="form-group">
             <label className="form-label" htmlFor="reg-password">Password</label>
-            <input
-              id="reg-password"
-              type="password"
-              className="form-input"
-              placeholder="Min 6 characters"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              minLength={6}
-            />
+            <div className="password-input-wrapper">
+              <input
+                id="reg-password"
+                type={showPassword ? 'text' : 'password'}
+                className="form-input"
+                placeholder="Min 6 characters"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                minLength={6}
+              />
+              <button
+                type="button"
+                className="password-toggle"
+                onClick={() => setShowPassword(!showPassword)}
+                aria-label={showPassword ? 'Hide password' : 'Show password'}
+              >
+                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
+            </div>
           </div>
 
           <div className="form-group">
