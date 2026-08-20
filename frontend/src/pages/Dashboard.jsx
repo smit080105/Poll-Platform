@@ -60,7 +60,7 @@ function Dashboard() {
     <div className="dashboard">
       <div className="dashboard-header">
         <div>
-          <h1>👋 Welcome, {user?.name}</h1>
+          <h1>Welcome back, {user?.name}</h1>
           <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginTop: '4px' }}>
             Manage your polls and track results
           </p>
@@ -70,28 +70,21 @@ function Dashboard() {
         </Link>
       </div>
 
-      {/* Stats */}
-      <div className="dashboard-stats">
-        <div className="stat-card glass-card-static">
-          <div className="stat-icon purple"><BarChart3 size={22} /></div>
-          <div>
-            <div className="stat-value">{polls.length}</div>
-            <div className="stat-label">Total Polls</div>
-          </div>
+            {/* Stats */}
+      <div className="ledger-row">
+        <div className="ledger-item">
+          <span className="ledger-value">{polls.length}</span>
+          <span className="ledger-label">Polls created</span>
         </div>
-        <div className="stat-card glass-card-static">
-          <div className="stat-icon teal"><Users size={22} /></div>
-          <div>
-            <div className="stat-value">{totalVotes}</div>
-            <div className="stat-label">Total Votes</div>
-          </div>
+        <div className="ledger-divider" />
+        <div className="ledger-item">
+          <span className="ledger-value">{totalVotes}</span>
+          <span className="ledger-label">Votes counted</span>
         </div>
-        <div className="stat-card glass-card-static">
-          <div className="stat-icon amber"><Zap size={22} /></div>
-          <div>
-            <div className="stat-value">{activePolls}</div>
-            <div className="stat-label">Active Now</div>
-          </div>
+        <div className="ledger-divider" />
+        <div className="ledger-item">
+          <span className="ledger-value">{activePolls}</span>
+          <span className="ledger-label">Polls active now</span>
         </div>
       </div>
 
@@ -104,7 +97,7 @@ function Dashboard() {
 
       {polls.length === 0 ? (
         <div className="empty-state">
-          <div className="empty-state-icon">📊</div>
+        <div className="empty-state-icon"><BarChart3 size={40} strokeWidth={1.5} /></div>
           <h3>No polls yet</h3>
           <p>Create your first poll and start collecting responses in real-time.</p>
           <Link to="/create-poll" className="btn btn-primary" style={{ marginTop: '16px' }}>

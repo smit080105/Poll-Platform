@@ -252,6 +252,55 @@ input, select, textarea {
   color: white;
 }
 
+/* ── Ledger stat row ── */
+.ledger-row {
+  display: flex;
+  align-items: center;
+  background: var(--bg-card);
+  border: 1px solid var(--border-glass);
+  border-radius: var(--radius-md, 12px);
+  padding: 28px 32px;
+  margin-bottom: 32px;
+}
+
+.ledger-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.ledger-value {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 2rem;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.ledger-label {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.ledger-divider {
+  width: 1px;
+  align-self: stretch;
+  background: var(--border-glass);
+  margin: 0 32px;
+}
+
+@media (max-width: 640px) {
+  .ledger-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 20px;
+  }
+  .ledger-divider {
+    display: none;
+  }
+}
 /* ── Buttons ── */
 .btn {
   display: inline-flex;
