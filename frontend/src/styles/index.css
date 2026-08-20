@@ -12,31 +12,31 @@
 /* ── CSS Variables ── */
 :root {
   /* Backgrounds */
-  --bg-primary: #f4f5fb;
+  --bg-primary: #FAFAF7;
   --bg-secondary: #ffffff;
-  --bg-card: rgba(255, 255, 255, 0.75);
-  --bg-card-hover: rgba(255, 255, 255, 0.92);
-  --bg-input: rgba(22, 22, 31, 0.04);
-  --bg-input-focus: rgba(22, 22, 31, 0.06);
+  --bg-card: rgba(255, 255, 255, 0.85);
+  --bg-card-hover: rgba(255, 255, 255, 0.97);
+  --bg-input: rgba(28, 27, 31, 0.04);
+  --bg-input-focus: rgba(28, 27, 31, 0.06);
 
-  /* Accent gradients */
-  --accent-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  --accent-gradient-hover: linear-gradient(135deg, #7b93ff 0%, #8b5fbf 100%);
-  --accent-vote: #00c9a0;
-  --accent-vote-glow: rgba(0, 201, 160, 0.25);
-  --accent-warning: #f59e0b;
-  --accent-danger: #f43f5e;
-  --accent-info: #3b82f6;
+  /* Accents — Ballot & Ledger */
+  --accent-gradient: #1F6F54;
+  --accent-gradient-hover: #26805F;
+  --accent-vote: #1F6F54;
+  --accent-vote-glow: rgba(31, 111, 84, 0.25);
+  --accent-warning: #B8860B;
+  --accent-danger: #B33A3A;
+  --accent-info: #2B6CB0;
 
   /* Text */
-  --text-primary: #16161f;
-  --text-secondary: rgba(22, 22, 31, 0.62);
-  --text-muted: rgba(22, 22, 31, 0.4);
+  --text-primary: #1C1B1F;
+  --text-secondary: rgba(28, 27, 31, 0.62);
+  --text-muted: rgba(28, 27, 31, 0.4);
 
   /* Borders */
-  --border-glass: rgba(22, 22, 31, 0.08);
-  --border-glass-hover: rgba(22, 22, 31, 0.16);
-  --border-accent: rgba(102, 126, 234, 0.35);
+  --border-glass: #DEDCD3;
+  --border-glass-hover: #C9C6B9;
+  --border-accent: rgba(31, 111, 84, 0.35);
 
   /* Spacing & Radius */
   --radius-sm: 8px;
@@ -46,10 +46,10 @@
   --radius-full: 9999px;
 
   /* Shadows */
-  --shadow-sm: 0 2px 8px rgba(22, 22, 31, 0.05);
-  --shadow-md: 0 6px 24px rgba(22, 22, 31, 0.07);
-  --shadow-lg: 0 12px 48px rgba(22, 22, 31, 0.10);
-  --shadow-glow: 0 0 30px rgba(102, 126, 234, 0.12);
+  --shadow-sm: 0 2px 8px rgba(28, 27, 31, 0.05);
+  --shadow-md: 0 6px 24px rgba(28, 27, 31, 0.07);
+  --shadow-lg: 0 12px 48px rgba(28, 27, 31, 0.10);
+  --shadow-glow: 0 0 30px rgba(31, 111, 84, 0.12);
 
   /* Transitions */
   --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
@@ -59,7 +59,23 @@
   /* Font */
   --font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 }
+/* ── Typography ── */
+body {
+  font-family: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+}
 
+h1, h2, h3 {
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.poll-card-title,
+.poll-view-title,
+.vote-option-count,
+.poll-view-timer {
+  font-family: 'IBM Plex Mono', monospace;
+}
 /* ── Reset ── */
 *, *::before, *::after {
   margin: 0;
