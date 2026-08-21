@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
-import { UserPlus, AlertCircle } from 'lucide-react';
+import { UserPlus, AlertCircle, Eye, EyeOff } from 'lucide-react';
+import { Vote, ClipboardList } from 'lucide-react';
 
 function Register() {
   const { register } = useAuth();
@@ -13,6 +14,7 @@ function Register() {
   const [role, setRole] = useState('PARTICIPANT');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -28,8 +30,14 @@ function Register() {
     try {
       const data = await register(name, email, password, role);
       navigate(data.user.role === 'ORGANIZER' ? '/dashboard' : '/home');
-    } catch (err) {
-      setError(err.response?.data?.error || 'Registration failed. Please try again.');
+} catch (err) {
+      if (err.response?.data?.error) {
+        setError(err.response.data.error);
+      } else if (err.request) {
+        setError('Unable to reach the server. Please check your connection and try again.');
+      } else {
+        setError('Something went wrong. Please try again.');
+      }
     } finally {
       setLoading(false);
     }
@@ -78,16 +86,26 @@ function Register() {
 
           <div className="form-group">
             <label className="form-label" htmlFor="reg-password">Password</label>
-            <input
-              id="reg-password"
-              type="password"
-              className="form-input"
-              placeholder="Min 6 characters"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              minLength={6}
-            />
+            <div className="password-input-wrapper">
+              <input
+                id="reg-password"
+                type={showPassword ? 'text' : 'password'}
+                className="form-input"
+                placeholder="Min 6 characters"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                minLength={6}
+              />
+              <button
+                type="button"
+                className="password-toggle"
+                onClick={() => setShowPassword(!showPassword)}
+                aria-label={showPassword ? 'Hide password' : 'Show password'}
+              >
+                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
+            </div>
           </div>
 
           <div className="form-group">
@@ -97,7 +115,7 @@ function Register() {
                 className={`role-option ${role === 'ORGANIZER' ? 'selected' : ''}`}
                 onClick={() => setRole('ORGANIZER')}
               >
-                <div className="role-option-icon">📋</div>
+                <div className="role-option-icon"><ClipboardList size={18} strokeWidth={2} /></div>
                 <div className="role-option-title">Create Polls</div>
                 <div className="role-option-desc">Organizer account</div>
               </div>
@@ -105,7 +123,7 @@ function Register() {
                 className={`role-option ${role === 'PARTICIPANT' ? 'selected' : ''}`}
                 onClick={() => setRole('PARTICIPANT')}
               >
-                <div className="role-option-icon">🗳️</div>
+                <div className="role-option-icon"><Vote size={18} strokeWidth={2} /></div>
                 <div className="role-option-title">Vote in Polls</div>
                 <div className="role-option-desc">Participant account</div>
               </div>

@@ -62,7 +62,7 @@ function Landing() {
           </p>
         </div>
 
-        <div className="feature-card glass-card">
+          <div className="feature-card glass-card">
           <div className="feature-icon amber">
             <BarChart3 size={22} />
           </div>
@@ -73,6 +73,11 @@ function Landing() {
           </p>
         </div>
       </section>
+
+      {/* Footer */}
+      <footer className="landing-footer">
+        <p>© 2026 PollWave. All rights reserved.</p>
+      </footer>
     </div>
   );
 }

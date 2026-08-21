@@ -21,7 +21,13 @@ function Login() {
       const data = await login(email, password);
       navigate(data.user.role === 'ORGANIZER' ? '/dashboard' : '/home');
     } catch (err) {
-      setError(err.response?.data?.error || 'Login failed. Please try again.');
+      if (err.response?.data?.error) {
+        setError(err.response.data.error);
+      } else if (err.request) {
+        setError('Unable to reach the server. Please check your connection and try again.');
+      } else {
+        setError('Something went wrong. Please try again.');
+      }
     } finally {
       setLoading(false);
     }

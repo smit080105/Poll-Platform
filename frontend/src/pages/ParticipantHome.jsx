@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import api from '../services/api.js';
 import LoadingSpinner from '../components/LoadingSpinner.jsx';
 import { Search, Users, Clock, ArrowRight } from 'lucide-react';
+import { Vote } from 'lucide-react';
 
 function ParticipantHome() {
   const navigate = useNavigate();
@@ -50,7 +51,7 @@ function ParticipantHome() {
 
   return (
     <div className="participant-home">
-      <h1>🗳️ Browse Polls</h1>
+      <h1><span className="dashboard-title-icon"><Vote size={26} strokeWidth={2} /> Browse Polls</span></h1>
       <p className="participant-home-subtitle">
         Join a poll with a link or browse active public polls below
       </p>

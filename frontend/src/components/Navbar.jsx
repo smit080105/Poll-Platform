@@ -1,4 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
+import Logo from './Logo.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
 import { LogOut, BarChart3, Home, PlusCircle } from 'lucide-react';
 
@@ -11,7 +12,7 @@ function Navbar() {
   return (
     <nav className="navbar">
       <Link to="/" className="navbar-brand">
-        <div className="brand-icon">📊</div>
+      <div className="brand-icon"><Logo size={18} /></div>
         <span>PollWave</span>
       </Link>
 
