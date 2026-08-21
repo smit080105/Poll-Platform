@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
 import { UserPlus, AlertCircle, Eye, EyeOff } from 'lucide-react';
+import { Vote, ClipboardList } from 'lucide-react';
 
 function Register() {
   const { register } = useAuth();
@@ -114,7 +115,7 @@ function Register() {
                 className={`role-option ${role === 'ORGANIZER' ? 'selected' : ''}`}
                 onClick={() => setRole('ORGANIZER')}
               >
-                <div className="role-option-icon">📋</div>
+                <div className="role-option-icon"><ClipboardList size={18} strokeWidth={2} /></div>
                 <div className="role-option-title">Create Polls</div>
                 <div className="role-option-desc">Organizer account</div>
               </div>
@@ -122,7 +123,7 @@ function Register() {
                 className={`role-option ${role === 'PARTICIPANT' ? 'selected' : ''}`}
                 onClick={() => setRole('PARTICIPANT')}
               >
-                <div className="role-option-icon">🗳️</div>
+                <div className="role-option-icon"><Vote size={18} strokeWidth={2} /></div>
                 <div className="role-option-title">Vote in Polls</div>
                 <div className="role-option-desc">Participant account</div>
               </div>
