@@ -5,6 +5,7 @@ import api from '../services/api.js';
 import { io } from 'socket.io-client';
 import LoadingSpinner from '../components/LoadingSpinner.jsx';
 import { CheckCircle2, Clock, AlertCircle, LogIn } from 'lucide-react';
+import { Check } from 'lucide-react';
 
 function PollView() {
   const { shortId } = useParams();
@@ -184,7 +185,7 @@ function PollView() {
         {/* Already voted message */}
         {hasVoted && (
           <div className="voted-message">
-            <div className="voted-message-icon">✅</div>
+          <div className="voted-message-icon"><Check size={28} strokeWidth={2.5} /></div>
             <h3>You've already voted!</h3>
             <p>Your response has been recorded. Results are shown below.</p>
           </div>
