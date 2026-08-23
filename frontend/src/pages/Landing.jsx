@@ -15,17 +15,18 @@ function Landing() {
       <section className="landing-hero">
         <div className="landing-badge">
           <span className="landing-badge-dot" />
-          Real-time polling platform
+          Verified elections for communities
         </div>
 
         <h1 className="landing-title">
-          Create polls that<br />
-          <span className="gradient-text">matter in real-time</span>
+          Not just another poll tool.<br />
+          <span className="gradient-text">Elections you can trust.</span>
         </h1>
 
         <p className="landing-subtitle">
-          Build engaging polls, share them instantly with a link, and watch votes
-          pour in live. Secure one-person-one-vote integrity built right in.
+          Built for housing societies, student unions, and clubs running real
+          decisions — too small for enterprise e-voting, too important for a
+          WhatsApp poll. One vote per person, verified, every time.
         </p>
 
         <div className="landing-actions">
