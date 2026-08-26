@@ -825,9 +825,10 @@ textarea.form-input {
   font-size: 1.3rem;
 }
 
-.feature-icon.purple { background: rgba(102, 126, 234, 0.15); }
-.feature-icon.teal { background: rgba(0, 212, 170, 0.15); }
-.feature-icon.amber { background: rgba(245, 158, 11, 0.15); }
+.feature-icon {
+  background: rgba(31, 111, 84, 0.12);
+  color: var(--accent-gradient);
+}
 
 .feature-card h3 {
   font-size: 1.1rem;
