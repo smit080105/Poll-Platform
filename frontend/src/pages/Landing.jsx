@@ -42,8 +42,7 @@ function Landing() {
       {/* Features Section */}
       <section className="landing-features">
         <div className="feature-card glass-card">
-          <div className="feature-icon purple">
-            <Zap size={22} />
+          <div className="feature-icon">            <Zap size={22} />
           </div>
           <h3>Instant Shareable Links</h3>
           <p>
@@ -53,7 +52,7 @@ function Landing() {
         </div>
 
         <div className="feature-card glass-card">
-          <div className="feature-icon teal">
+          <div className="feature-icon">
             <Shield size={22} />
           </div>
           <h3>Tamper-Proof Voting</h3>
@@ -64,7 +63,7 @@ function Landing() {
         </div>
 
           <div className="feature-card glass-card">
-          <div className="feature-icon amber">
+          <div className="feature-icon">
             <BarChart3 size={22} />
           </div>
           <h3>Live Results</h3>
