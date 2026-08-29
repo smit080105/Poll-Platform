@@ -251,6 +251,9 @@ function PollView() {
                 </>
               )}
             </button>
+            <p className="vote-trust-note">
+              <ShieldCheck size={13} /> One vote per person — verified and locked once cast
+            </p>
           </div>
         )}
 

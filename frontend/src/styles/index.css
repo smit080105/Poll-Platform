@@ -842,6 +842,16 @@ textarea.form-input {
   line-height: 1.6;
 }
 
+/* ── Vote trust note ── */
+.vote-trust-note {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 10px;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
 /* ── Dashboard ── */
 .dashboard {
   max-width: 1200px;
