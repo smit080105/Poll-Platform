@@ -841,6 +841,25 @@ textarea.form-input {
   font-size: 0.9rem;
   line-height: 1.6;
 }
+/* ── Poll card badges ── */
+.poll-card-badges {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.verified-badge {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--accent-gradient);
+  background: rgba(31, 111, 84, 0.1);
+  padding: 3px 8px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
 
 /* ── Vote trust note ── */
 .vote-trust-note {
