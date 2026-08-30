@@ -1,6 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { Clock, Users, Copy, ExternalLink, BarChart2, Trash2 } from 'lucide-react';
-
+import { Clock, Users, Copy, ExternalLink, BarChart2, Trash2, ShieldCheck, CalendarDays } from 'lucide-react';
 function PollCard({ poll, onDelete, onPublish }) {
   const navigate = useNavigate();
 
@@ -41,11 +40,15 @@ function PollCard({ poll, onDelete, onPublish }) {
     <div className="poll-card glass-card" onClick={() => navigate(`/results/${poll.id}`)}>
       <div className="poll-card-header">
         <h3 className="poll-card-title">{poll.title}</h3>
-        <span className={`status-badge ${getStatusClass()}`}>
-          {getStatusLabel()}
-        </span>
+        <div className="poll-card-badges">
+          <span className="verified-badge" title="One vote per person, enforced">
+            <ShieldCheck size={12} /> Verified
+          </span>
+          <span className={`status-badge ${getStatusClass()}`}>
+            {getStatusLabel()}
+          </span>
+        </div>
       </div>
-
       {poll.description && (
         <p className="poll-card-description">{poll.description}</p>
       )}
@@ -55,7 +58,10 @@ function PollCard({ poll, onDelete, onPublish }) {
           <Users size={14} /> {totalVotes} vote{totalVotes !== 1 ? 's' : ''}
         </span>
         <span className="poll-card-meta-item">
-          <Clock size={14} /> {formatDate(poll.endDate)}
+          <CalendarDays size={14} /> Created {formatDate(poll.createdAt)}
+        </span>
+        <span className="poll-card-meta-item">
+          <Clock size={14} /> Ends {formatDate(poll.endDate)}
         </span>
       </div>
 
