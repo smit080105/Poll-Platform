@@ -19,7 +19,7 @@ function PollView() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-  const [timeLeft, setTimeLeft] = useState('');
+  const [showConfirm, setShowConfirm] = useState(false);
 
   // Fetch poll data
   const fetchPoll = useCallback(async () => {
@@ -109,8 +109,13 @@ function PollView() {
     return `${minutes}m ${seconds}s`;
   };
 
-  const handleVote = async () => {
+  const handleVoteClick = () => {
     if (!selectedOption || !user) return;
+    setShowConfirm(true);
+  };
+
+  const confirmVote = async () => {
+    setShowConfirm(false);
     setSubmitting(true);
     setError('');
 
@@ -181,7 +186,27 @@ function PollView() {
             </span>
           </div>
         )}
-
+        
+      {showConfirm && (
+        <div className="modal-overlay" onClick={() => setShowConfirm(false)}>
+          <div className="modal-box" onClick={(e) => e.stopPropagation()}>
+            <h3>Confirm your vote</h3>
+            <p>
+              You're voting for <strong>
+                {poll.options.find(o => o.id === selectedOption)?.text}
+              </strong>. Votes are locked once cast and cannot be changed.
+            </p>
+            <div className="modal-actions">
+              <button className="btn btn-secondary" onClick={() => setShowConfirm(false)}>
+                Cancel
+              </button>
+              <button className="btn btn-success" onClick={confirmVote}>
+                Confirm vote
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
         {/* Already voted message */}
         {hasVoted && (
           <div className="voted-message">
@@ -239,7 +264,7 @@ function PollView() {
           <div className="vote-submit-area">
             <button
               className="btn btn-success btn-lg"
-              onClick={handleVote}
+              onClick={handleVoteClick}
               disabled={!selectedOption || submitting}
               style={{ width: '100%' }}
             >
