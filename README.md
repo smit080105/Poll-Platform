@@ -1,13 +1,12 @@
 <div align="center">
 
-# 📊 PollWave
+# 🗳️ PollWave
 
-**Real-Time Poll & Survey Intelligence Platform**
+**Verified elections for communities.**
 
-[![CI](https://github.com/YOUR_USERNAME/poll-platform/actions/workflows/ci.yml/badge.svg)](https://github.com/YOUR_USERNAME/poll-platform/actions/workflows/ci.yml)
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Node.js](https://img.shields.io/badge/Node.js-20-green.svg)](https://nodejs.org/)
-[![Docker](https://img.shields.io/badge/Docker-Ready-2496ED.svg)](https://www.docker.com/)
+Not just another poll tool — PollWave is built for housing societies, student unions, and clubs running real decisions: too small for enterprise e-voting, too important for a WhatsApp poll. One vote per person, verified and locked, every time.
+
+Real-time results, organizer/participant roles, and tamper-proof voting — built with React, Express, Prisma, and Socket.io.
 
 Create polls, share them instantly with a link, and watch votes pour in live.  
 Tamper-proof, one-person-one-vote integrity built right in.
