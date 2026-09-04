@@ -1,5 +1,6 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from './context/AuthContext.jsx';
+import NotFound from './pages/NotFound.jsx';
 import Navbar from './components/Navbar.jsx';
 import ProtectedRoute from './components/ProtectedRoute.jsx';
 import Landing from './pages/Landing.jsx';
@@ -59,8 +60,9 @@ function App() {
           } />
 
           {/* Fallback */}
-          <Route path="*" element={<Navigate to="/" />} />
-        </Routes>
+          {/* Fallback */}
+          <Route path="*" element={<NotFound />} />
+          </Routes>
       </main>
     </div>
   );
