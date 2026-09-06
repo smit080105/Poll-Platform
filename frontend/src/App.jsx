@@ -26,8 +26,9 @@ function App() {
 
   return (
     <div className="app">
+      <a href="#main-content" className="skip-link">Skip to content</a>
       <Navbar />
-      <main className="main-content">
+      <main className="main-content" id="main-content">
         <Routes>
           {/* Public routes */}
           <Route path="/" element={user ? <Navigate to={user.role === 'ORGANIZER' ? '/dashboard' : '/home'} /> : <Landing />} />

@@ -1370,6 +1370,25 @@ textarea.form-input {
   color: var(--text-muted);
   margin-top: 16px;
 }
+/* ── Skip to content link ── */
+.skip-link {
+  position: absolute;
+  top: -40px;
+  left: 8px;
+  background: var(--accent-gradient);
+  color: white;
+  padding: 10px 16px;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-decoration: none;
+  z-index: 2000;
+  transition: top 0.15s ease;
+}
+
+.skip-link:focus {
+  top: 8px;
+}
 /* ── Keyboard focus visibility ── */
 a:focus-visible,
 button:focus-visible,
