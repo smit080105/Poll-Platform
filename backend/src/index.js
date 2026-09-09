@@ -10,6 +10,15 @@ import voteRoutes from './routes/votes.js';
 
 dotenv.config();
 
+if (!process.env.DATABASE_URL) {
+  console.error('❌ Missing required environment variable: DATABASE_URL');
+  process.exit(1);
+}
+if (!process.env.JWT_SECRET) {
+  console.error('❌ Missing required environment variable: JWT_SECRET');
+  process.exit(1);
+}
+
 const app = express();
 const httpServer = createServer(app);
 const io = new Server(httpServer, {
