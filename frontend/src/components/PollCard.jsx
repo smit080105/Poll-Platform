@@ -1,7 +1,8 @@
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Clock, Users, Copy, ExternalLink, BarChart2, Trash2, ShieldCheck, CalendarDays } from 'lucide-react';
-function PollCard({ poll, onDelete, onPublish }) {
+import { Clock, Users, Copy, ExternalLink, BarChart2, Trash2, ShieldCheck, CalendarDays } from 'lucide-react';function PollCard({ poll, onDelete, onPublish }) {
   const navigate = useNavigate();
+  const [isCopied, setIsCopied] = useState(false);
 
   const getStatusClass = () => {
     if (poll.status === 'ACTIVE') {
@@ -32,6 +33,8 @@ function PollCard({ poll, onDelete, onPublish }) {
     e.stopPropagation();
     const link = `${window.location.origin}/poll/${poll.shortId}`;
     navigator.clipboard.writeText(link);
+    setIsCopied(true);
+    setTimeout(() => setIsCopied(false), 2000);
   };
 
   const totalVotes = poll._count?.votes || 0;
@@ -79,7 +82,15 @@ function PollCard({ poll, onDelete, onPublish }) {
           onClick={copyLink}
           title="Copy shareable link"
         >
-          <Copy size={14} /> Copy Link
+          {isCopied ? (
+            <>
+              <Check size={14} /> Copied!
+            </>
+          ) : (
+            <>
+              <Copy size={14} /> Copy Link
+            </>
+          )}
         </button>
         <button
           className="btn btn-secondary btn-sm"
