@@ -1,0 +1,9 @@
+{
+  "name": "PollWave",
+  "short_name": "PollWave",
+  "description": "Verified elections for communities",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#FAFAF7",
+  "theme_color": "#1F6F54"
+}
