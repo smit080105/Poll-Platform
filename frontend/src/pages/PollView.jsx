@@ -5,7 +5,7 @@ import api from '../services/api.js';
 import { io } from 'socket.io-client';
 import LoadingSpinner from '../components/LoadingSpinner.jsx';
 import { CheckCircle2, Clock, AlertCircle, LogIn } from 'lucide-react';
-import { Check } from 'lucide-react';
+import { Check, ShieldCheck } from 'lucide-react';
 
 function PollView() {
   const { shortId } = useParams();
@@ -19,6 +19,7 @@ function PollView() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [timeLeft, setTimeLeft] = useState('');
   const [showConfirm, setShowConfirm] = useState(false);
 
   // Fetch poll data

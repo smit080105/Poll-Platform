@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import api from '../services/api.js';
 import LoadingSpinner from '../components/LoadingSpinner.jsx';
 import { Search, Users, Clock, ArrowRight } from 'lucide-react';
-import { Vote } from 'lucide-react';
+import { Vote, Inbox } from 'lucide-react';
 
 function ParticipantHome() {
   const navigate = useNavigate();
@@ -81,9 +81,9 @@ function ParticipantHome() {
 
       {polls.length === 0 ? (
         <div className="empty-state">
-          <div className="empty-state-icon">📭</div>
-          <h3>No active polls right now</h3>
-          <p>Check back later or join a poll using a shared link above.</p>
+          <div className="empty-state-icon"><Inbox size={40} strokeWidth={1.5} /></div>
+          <h3>The ballot box is empty</h3>
+          <p>No public polls are open right now. Check back later, or join one using a shared link.</p>
         </div>
       ) : (
         <div className="public-polls-grid">

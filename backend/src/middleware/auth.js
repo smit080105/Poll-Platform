@@ -1,5 +1,13 @@
 import jwt from 'jsonwebtoken';
+import rateLimit from 'express-rate-limit';
 
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 10, // 10 attempts per window per IP
+  message: { error: 'Too many attempts. Please try again in 15 minutes.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
 export const authenticate = (req, res, next) => {
   const authHeader = req.headers.authorization;
 

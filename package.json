@@ -27,5 +27,9 @@
     "prisma"
   ],
   "author": "",
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": {
+    "express-rate-limit": "^8.7.0",
+    "helmet": "^8.3.0"
+  }
 }
