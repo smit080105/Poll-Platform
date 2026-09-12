@@ -3,6 +3,7 @@ import { createServer } from 'http';
 import { Server } from 'socket.io';
 import cors from 'cors';
 import helmet from 'helmet';
+import compression from 'compression';
 import dotenv from 'dotenv';
 import authRoutes from './routes/auth.js';
 import pollRoutes from './routes/polls.js';
@@ -36,6 +37,7 @@ app.use(cors({
   credentials: true
 }));
 app.use(helmet());
+app.use(compression());
 app.use(express.json());
 
 // Make io accessible to routes
