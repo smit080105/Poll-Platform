@@ -20,6 +20,9 @@ if (!process.env.JWT_SECRET) {
 }
 
 const app = express();
+
+// Required for correct client IPs behind Render's reverse proxy (affects rate limiting)
+app.set('trust proxy', 1);
 const httpServer = createServer(app);
 const io = new Server(httpServer, {
   cors: {
