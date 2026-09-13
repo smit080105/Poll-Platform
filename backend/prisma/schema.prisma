@@ -20,7 +20,6 @@ model User {
 
 model Poll {
   id          String   @id @default(uuid())
-  shortId     String   @unique
   title       String
   description String   @default("")
   type        String   @default("SINGLE_CHOICE")
@@ -55,4 +54,5 @@ model Vote {
   createdAt DateTime @default(now())
 
   @@unique([userId, pollId])
+  @@index([pollId])
 }
