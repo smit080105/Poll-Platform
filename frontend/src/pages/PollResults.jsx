@@ -105,3 +105,4 @@ function PollResults() {
       </div>
     ); }
   }
+  export default PollResults;
