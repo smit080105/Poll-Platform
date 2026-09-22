@@ -103,6 +103,86 @@ function PollResults() {
           <p>The poll results are not available at this time.</p>
         </div>
       </div>
-    ); }
+    );
   }
-  export default PollResults;
+
+  // Find the winner (most votes)
+  const maxVotes = results.options.length > 0
+    ? Math.max(...results.options.map(o => o.votes))
+    : 0;
+
+  return (
+    <div className="poll-results">
+      <button className="btn btn-ghost" onClick={() => navigate('/dashboard')} style={{ marginBottom: '16px' }}>
+        <ArrowLeft size={18} /> Back to Dashboard
+      </button>
+
+      <h1>{poll.title}</h1>
+      <p className="poll-results-subtitle">{poll.description}</p>
+
+      {/* Results Card */}
+      <div className="results-card glass-card-static">
+        <div className="results-header">
+          <h2 style={{ fontSize: '1.1rem', fontWeight: 700 }}>Live Results</h2>
+          <div className="results-total">
+            <span>{results.totalVotes}</span> total votes
+          </div>
+        </div>
+
+        {results.options.map(option => (
+          <div
+            key={option.id}
+            className={`result-item ${option.votes === maxVotes && maxVotes > 0 ? 'winner' : ''}`}
+          >
+            <div className="result-item-header">
+              <span className="result-item-text">
+                {option.votes === maxVotes && maxVotes > 0 && '👑 '}
+                {option.text}
+              </span>
+              <div className="result-item-stats">
+                <span className="result-item-votes">{option.votes} vote{option.votes !== 1 ? 's' : ''}</span>
+                <span className="result-item-percentage">{option.percentage}%</span>
+              </div>
+            </div>
+            <div className="result-bar-bg">
+              <div
+                className="result-bar-fill"
+                style={{ width: `${option.percentage}%` }}
+              />
+            </div>
+          </div>
+        ))}
+
+        <button className="btn btn-secondary btn-sm" onClick={exportResults} style={{ marginTop: '16px' }}>
+          <Download size={14} /> Export CSV
+        </button>
+      </div>
+
+      {/* Share Section */}
+      <div className="share-section glass-card-static">
+        <div className="share-section-title">
+          <Share2 size={16} /> Share this poll
+        </div>
+        <div className="share-link-box">
+          <input
+            className="share-link-input"
+            value={`${window.location.origin}/poll/${poll.shortId}`}
+            readOnly
+            onClick={(e) => e.target.select()}
+          />
+          <button className="btn btn-primary btn-sm" onClick={copyLink}>
+            {copied ? <Check size={16} /> : <Copy size={16} />}
+            {copied ? 'Copied!' : 'Copy'}
+          </button>
+        </div>
+        {copied && (
+          <div className="copy-success">
+            <Check size={14} /> Link copied to clipboard
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+export default PollResults;
