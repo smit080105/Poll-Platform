@@ -13,6 +13,7 @@ function PollResults() {
   const [results, setResults] = useState(null);
   const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState(false);
+  const [exporting, setExporting] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -74,6 +75,7 @@ function PollResults() {
 
   const exportResults = () => {
     if (!poll || !results) return;
+    setExporting(true);
     const rows = [
       ['Poll Title', poll.title],
       ['Poll ID', poll.id],
@@ -91,6 +93,7 @@ function PollResults() {
     a.download = `${poll.title.replace(/\s+/g, '_')}_results.csv`;
     a.click();
     URL.revokeObjectURL(url);
+    setTimeout(() => setExporting(false), 400);
   };
 
   if (loading) return <LoadingSpinner text="Loading results..." />;
@@ -153,10 +156,11 @@ function PollResults() {
           </div>
         ))}
 
-        <button className="btn btn-secondary btn-sm" onClick={exportResults} style={{ marginTop: '16px' }}>
-          <Download size={14} /> Export CSV
+        <button className="btn btn-secondary btn-sm" onClick={exportResults} disabled={exporting} style={{ marginTop: '16px' }}>
+          <Download size={14} /> {exporting ? 'Exporting…' : 'Export CSV'}
         </button>
-      </div>
+        
+        </div>
 
       {/* Share Section */}
       <div className="share-section glass-card-static">
