@@ -53,7 +53,8 @@ function PollView() {
   useEffect(() => {
     if (!poll) return;
 
- const socket = io(import.meta.env.VITE_API_URL || 'http://localhost:5000', { transports: ['websocket', 'polling'] });    socket.emit('join-poll', poll.id);
+    const socket = io(import.meta.env.VITE_API_URL || 'http://localhost:5000', { transports: ['websocket', 'polling'] });
+    socket.emit('join-poll', poll.id);
 
     socket.on('vote-update', (data) => {
       if (data.pollId === poll.id) {
@@ -149,7 +150,7 @@ function PollView() {
     return (
       <div className="poll-view">
         <div className="empty-state">
-          <div className="empty-state-icon">🔍</div>
+          <div className="empty-state-icon"><AlertCircle size={40} strokeWidth={1.5} /></div>
           <h3>Poll Not Found</h3>
           <p>{error}</p>
           <Link to="/" className="btn btn-primary" style={{ marginTop: '16px' }}>Go Home</Link>
@@ -183,35 +184,36 @@ function PollView() {
           <div className="alert alert-error" style={{ marginBottom: '24px' }}>
             <LogIn size={16} />
             <span>
-              <Link to="/login" style={{ color: '#667eea', fontWeight: 600 }}>Sign in</Link> to vote in this poll
+              <Link to="/login" style={{ color: 'var(--accent-gradient)', fontWeight: 600 }}>Sign in</Link> to vote in this poll
             </span>
           </div>
         )}
-        
-      {showConfirm && (
-        <div className="modal-overlay" onClick={() => setShowConfirm(false)}>
-          <div className="modal-box" onClick={(e) => e.stopPropagation()}>
-            <h3>Confirm your vote</h3>
-            <p>
-              You're voting for <strong>
-                {poll.options.find(o => o.id === selectedOption)?.text}
-              </strong>. Votes are locked once cast and cannot be changed.
-            </p>
-            <div className="modal-actions">
-              <button className="btn btn-secondary" onClick={() => setShowConfirm(false)}>
-                Cancel
-              </button>
-              <button className="btn btn-success" onClick={confirmVote}>
-                Confirm vote
-              </button>
+
+        {showConfirm && (
+          <div className="modal-overlay" onClick={() => setShowConfirm(false)}>
+            <div className="modal-box" onClick={(e) => e.stopPropagation()}>
+              <h3>Confirm your vote</h3>
+              <p>
+                You're voting for <strong>
+                  {poll.options.find(o => o.id === selectedOption)?.text}
+                </strong>. Votes are locked once cast and cannot be changed.
+              </p>
+              <div className="modal-actions">
+                <button className="btn btn-secondary" onClick={() => setShowConfirm(false)}>
+                  Cancel
+                </button>
+                <button className="btn btn-success" onClick={confirmVote}>
+                  Confirm vote
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
+
         {/* Already voted message */}
         {hasVoted && (
           <div className="voted-message">
-          <div className="voted-message-icon"><Check size={28} strokeWidth={2.5} /></div>
+            <div className="voted-message-icon"><Check size={28} strokeWidth={2.5} /></div>
             <h3>You've already voted!</h3>
             <p>Your response has been recorded. Results are shown below.</p>
           </div>
