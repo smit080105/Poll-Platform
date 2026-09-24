@@ -121,7 +121,7 @@ router.get('/s/:shortId', async (req, res) => {
   }
 });
 
-// Get poll by ID
+// Get poll by ID (organizer only — owner's own poll details/results)
 router.get('/:id', authenticate, async (req, res) => {
   try {
     const poll = await prisma.poll.findUnique({
@@ -139,6 +139,9 @@ router.get('/:id', authenticate, async (req, res) => {
 
     if (!poll) {
       return res.status(404).json({ error: 'Poll not found.' });
+    }
+    if (poll.organizerId !== req.user.id) {
+      return res.status(403).json({ error: 'Not authorized.' });
     }
 
     res.json(poll);
