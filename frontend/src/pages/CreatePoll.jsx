@@ -38,6 +38,10 @@ function CreatePoll() {
     setError('');
 
     // Validate
+    if (!title.trim()) {
+      setError('Please provide a poll title.');
+      return;
+    }
     const filledOptions = options.filter(o => o.trim());
     if (filledOptions.length < 2) {
       setError('Please provide at least 2 options.');
@@ -49,6 +53,10 @@ function CreatePoll() {
     }
     if (new Date(startDate) >= new Date(endDate)) {
       setError('End date must be after start date.');
+      return;
+    }
+    if (new Date(startDate) < new Date()) {
+      setError('Start date cannot be in the past.');
       return;
     }
 
