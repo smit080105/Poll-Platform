@@ -1,13 +1,5 @@
 import jwt from 'jsonwebtoken';
-import rateLimit from 'express-rate-limit';
 
-const authLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 10, // 10 attempts per window per IP
-  message: { error: 'Too many attempts. Please try again in 15 minutes.' },
-  standardHeaders: true,
-  legacyHeaders: false,
-});
 export const authenticate = (req, res, next) => {
   const authHeader = req.headers.authorization;
 
@@ -18,7 +10,7 @@ export const authenticate = (req, res, next) => {
   const token = authHeader.split(' ')[1];
 
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const decoded = jwt.verify(token, process.env.JWT_SECRET, { algorithms: ['HS256'] });
     req.user = decoded;
     next();
   } catch (error) {
