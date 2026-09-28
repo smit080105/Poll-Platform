@@ -209,8 +209,14 @@ router.post('/:id/publish', authenticate, roleGuard('ORGANIZER'), async (req, re
     if (poll.organizerId !== req.user.id) {
       return res.status(403).json({ error: 'Not authorized.' });
     }
+    if (poll.status === 'ACTIVE') {
+      return res.status(400).json({ error: 'Poll is already published.' });
+    }
     if (poll.options.length < 2) {
       return res.status(400).json({ error: 'Poll must have at least 2 options to publish.' });
+    }
+    if (new Date(poll.endDate) <= new Date()) {
+      return res.status(400).json({ error: 'Cannot publish a poll whose end date has already passed.' });
     }
 
     const updated = await prisma.poll.update({
@@ -238,10 +244,12 @@ router.delete('/:id', authenticate, roleGuard('ORGANIZER'), async (req, res) => 
       return res.status(403).json({ error: 'Not authorized.' });
     }
 
-    // Delete in order: votes → options → poll
-    await prisma.vote.deleteMany({ where: { pollId: req.params.id } });
-    await prisma.option.deleteMany({ where: { pollId: req.params.id } });
-    await prisma.poll.delete({ where: { id: req.params.id } });
+    // All-or-nothing: votes → options → poll
+    await prisma.$transaction([
+      prisma.vote.deleteMany({ where: { pollId: req.params.id } }),
+      prisma.option.deleteMany({ where: { pollId: req.params.id } }),
+      prisma.poll.delete({ where: { id: req.params.id } })
+    ]);
 
     res.json({ message: 'Poll deleted successfully.' });
   } catch (error) {
