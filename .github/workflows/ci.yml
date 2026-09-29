@@ -65,8 +65,19 @@ jobs:
         run: npx prisma generate
 
       - name: Validate Prisma Schema
-        run: npx prisma validate
-
+        run: npx prisma validate 
+              - name: Start server for testing
+        run: npm run dev &
+        env:
+          DATABASE_URL: "postgresql://user:password@localhost:5432/pollwave"
+          PORT: 5000
+      - name: Wait for server
+        run: npx wait-on http://localhost:5000/api/health -t 15000
+      - name: Run tests
+        run: npm test
+        env:
+          TEST_API_URL: "http://localhost:5000"
+          
   # ── Docker Build Check ──
   docker:
     name: Docker — Build Test
