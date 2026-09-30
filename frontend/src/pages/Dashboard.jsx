@@ -4,13 +4,15 @@ import { useAuth } from '../context/AuthContext.jsx';
 import api from '../services/api.js';
 import PollCard from '../components/PollCard.jsx';
 import LoadingSpinner from '../components/LoadingSpinner.jsx';
-import { PlusCircle, BarChart3, Users, Zap } from 'lucide-react';
+import { PlusCircle, BarChart3, Users, Zap, AlertCircle } from 'lucide-react';
 
 function Dashboard() {
   const { user } = useAuth();
   const [polls, setPolls] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [actionError, setActionError] = useState('');
+  const [confirmDeleteId, setConfirmDeleteId] = useState(null);
 
   const fetchPolls = async () => {
     try {
@@ -27,22 +29,28 @@ function Dashboard() {
     fetchPolls();
   }, []);
 
-  const handleDelete = async (pollId) => {
-    if (!window.confirm('Are you sure you want to delete this poll?')) return;
+  const requestDelete = (pollId) => {
+    setConfirmDeleteId(pollId);
+  };
+
+  const confirmDelete = async () => {
+    const pollId = confirmDeleteId;
+    setConfirmDeleteId(null);
     try {
       await api.delete(`/polls/${pollId}`);
       setPolls(polls.filter(p => p.id !== pollId));
     } catch (err) {
-      alert('Failed to delete poll.');
+      setActionError(err.response?.data?.error || 'Failed to delete poll.');
     }
   };
 
   const handlePublish = async (pollId) => {
+    setActionError('');
     try {
       await api.post(`/polls/${pollId}/publish`);
       fetchPolls();
     } catch (err) {
-      alert(err.response?.data?.error || 'Failed to publish poll.');
+      setActionError(err.response?.data?.error || 'Failed to publish poll.');
     }
   };
 
@@ -70,7 +78,13 @@ function Dashboard() {
         </Link>
       </div>
 
-            {/* Stats */}
+      {actionError && (
+        <div className="alert alert-error" style={{ marginBottom: '16px' }}>
+          <AlertCircle size={16} /> {actionError}
+        </div>
+      )}
+
+      {/* Stats */}
       <div className="ledger-row">
         <div className="ledger-item">
           <span className="ledger-value">{polls.length}</span>
@@ -97,7 +111,7 @@ function Dashboard() {
 
       {polls.length === 0 ? (
         <div className="empty-state">
-        <div className="empty-state-icon"><BarChart3 size={40} strokeWidth={1.5} /></div>
+          <div className="empty-state-icon"><BarChart3 size={40} strokeWidth={1.5} /></div>
           <h3>No polls yet</h3>
           <p>Create your first poll and start collecting responses in real-time.</p>
           <Link to="/create-poll" className="btn btn-primary" style={{ marginTop: '16px' }}>
@@ -110,10 +124,27 @@ function Dashboard() {
             <PollCard
               key={poll.id}
               poll={poll}
-              onDelete={handleDelete}
+              onDelete={requestDelete}
               onPublish={handlePublish}
             />
           ))}
+        </div>
+      )}
+
+      {confirmDeleteId && (
+        <div className="modal-overlay" onClick={() => setConfirmDeleteId(null)}>
+          <div className="modal-box" onClick={(e) => e.stopPropagation()}>
+            <h3>Delete this poll?</h3>
+            <p>This will permanently remove the poll and all its votes. This cannot be undone.</p>
+            <div className="modal-actions">
+              <button className="btn btn-secondary" onClick={() => setConfirmDeleteId(null)}>
+                Cancel
+              </button>
+              <button className="btn btn-danger" onClick={confirmDelete}>
+                Delete poll
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>
