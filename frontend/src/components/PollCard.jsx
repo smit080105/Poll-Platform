@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Clock, Users, Copy, ExternalLink, BarChart2, Trash2, ShieldCheck, CalendarDays } from 'lucide-react';function PollCard({ poll, onDelete, onPublish }) {
+import { Clock, Users, Copy, Check, ExternalLink, BarChart2, Trash2, ShieldCheck, CalendarDays } from 'lucide-react';
+
+function PollCard({ poll, onDelete, onPublish }) {
   const navigate = useNavigate();
   const [isCopied, setIsCopied] = useState(false);
 
