@@ -9,6 +9,12 @@ export const validatePollInput = (data) => {
   if (!data.title || data.title.trim().length < 3) {
     errors.push('Title must be at least 3 characters.');
   }
+  if (data.title && data.title.length > 200) {
+    errors.push('Title must be 200 characters or fewer.');
+  }
+  if (data.description && data.description.length > 2000) {
+    errors.push('Description must be 2000 characters or fewer.');
+  }
 
   if (!data.options || data.options.length < 2) {
     errors.push('At least 2 options are required.');
