@@ -12,8 +12,11 @@ export const validatePollInput = (data) => {
   if (data.title && data.title.length > 200) {
     errors.push('Title must be 200 characters or fewer.');
   }
-  if (data.description && data.description.length > 2000) {
-    errors.push('Description must be 2000 characters or fewer.');
+  if (data.maxVotes !== undefined && data.maxVotes !== null && data.maxVotes !== '') {
+    const maxVotesNum = Number(data.maxVotes);
+    if (!Number.isInteger(maxVotesNum) || maxVotesNum < 1) {
+      errors.push('Max votes must be a positive whole number.');
+    }
   }
 
   if (!data.options || data.options.length < 2) {
