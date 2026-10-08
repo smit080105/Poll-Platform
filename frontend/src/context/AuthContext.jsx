@@ -20,10 +20,16 @@ export function AuthProvider({ children }) {
             setUser(res.data);
             localStorage.setItem('pollwave_user', JSON.stringify(res.data));
           })
-          .catch(() => {
-            localStorage.removeItem('pollwave_token');
-            localStorage.removeItem('pollwave_user');
-            setUser(null);
+          .catch((err) => {
+            // Only end the session when the server says it is invalid:
+            // 401 = bad/expired token, 404 = user no longer exists.
+            // Network errors, cold starts and 5xx keep the cached session.
+            const status = err.response?.status;
+            if (status === 401 || status === 404) {
+              localStorage.removeItem('pollwave_token');
+              localStorage.removeItem('pollwave_user');
+              setUser(null);
+            }
           })
           .finally(() => setLoading(false));
       } catch {
