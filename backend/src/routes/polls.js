@@ -168,6 +168,23 @@ router.put('/:id', authenticate, roleGuard('ORGANIZER'), async (req, res) => {
 
     const { title, description, type, options, startDate, endDate, maxVotes, isPublic } = req.body;
 
+    // If either date changes, the resulting schedule must still be valid
+    if (startDate || endDate) {
+      const start = new Date(startDate || poll.startDate);
+      const end = new Date(endDate || poll.endDate);
+      if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+        return res.status(400).json({ error: 'Start and end dates must be valid dates.' });
+      }
+      if (end <= start) {
+        return res.status(400).json({ error: 'End date must be after start date.' });
+      }
+    }
+
+    // Replacing options must still leave at least 2
+    if (options !== undefined && (!Array.isArray(options) || options.length < 2)) {
+      return res.status(400).json({ error: 'A poll needs at least 2 options.' });
+    }
+
     const updated = await prisma.poll.update({
       where: { id: req.params.id },
       data: {
