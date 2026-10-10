@@ -4,7 +4,7 @@ import { useAuth } from '../context/AuthContext.jsx';
 import api from '../services/api.js';
 import PollCard from '../components/PollCard.jsx';
 import LoadingSpinner from '../components/LoadingSpinner.jsx';
-import { PlusCircle, BarChart3, Users, Zap, AlertCircle } from 'lucide-react';
+import { PlusCircle, BarChart3, AlertCircle } from 'lucide-react';
 
 function Dashboard() {
   const { user } = useAuth();
