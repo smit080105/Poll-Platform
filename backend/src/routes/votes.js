@@ -48,18 +48,30 @@ router.post('/:pollId', authenticate, async (req, res) => {
       return res.status(409).json({ error: 'You have already voted in this poll.' });
     }
 
-    // 5. Check max votes limit
-    if (poll.maxVotes) {
-      const voteCount = await prisma.vote.count({ where: { pollId } });
-      if (voteCount >= poll.maxVotes) {
+    // 5 + 6. Check the vote cap and create the vote atomically.
+    // Locking the poll row makes concurrent votes on the same poll run one at a
+    // time, so two simultaneous votes can't both slip under the cap.
+    // (DB constraint @@unique([userId, pollId]) remains the duplicate-vote layer.)
+    let vote;
+    try {
+      vote = await prisma.$transaction(async (tx) => {
+        await tx.$queryRaw`SELECT id FROM "Poll" WHERE id = ${pollId} FOR UPDATE`;
+
+        if (poll.maxVotes) {
+          const voteCount = await tx.vote.count({ where: { pollId } });
+          if (voteCount >= poll.maxVotes) {
+            throw new Error('MAX_VOTES_REACHED');
+          }
+        }
+
+        return tx.vote.create({ data: { userId, pollId, optionId } });
+      });
+    } catch (err) {
+      if (err.message === 'MAX_VOTES_REACHED') {
         return res.status(400).json({ error: 'This poll has reached its maximum number of votes.' });
       }
+      throw err; // anything else, including P2002, goes to the outer catch below
     }
-
-    // 6. Create vote (DB constraint @@unique([userId, pollId]) is the second layer)
-    const vote = await prisma.vote.create({
-      data: { userId, pollId, optionId }
-    });
 
     // 7. Get updated counts for real-time broadcast
     const updatedOptions = await prisma.option.findMany({
