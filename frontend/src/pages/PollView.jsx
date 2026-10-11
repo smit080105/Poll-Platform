@@ -4,8 +4,7 @@ import { useAuth } from '../context/AuthContext.jsx';
 import api from '../services/api.js';
 import { io } from 'socket.io-client';
 import LoadingSpinner from '../components/LoadingSpinner.jsx';
-import { CheckCircle2, Clock, AlertCircle, LogIn } from 'lucide-react';
-import { Check, ShieldCheck } from 'lucide-react';
+import { CheckCircle2, Clock, AlertCircle, LogIn, Check, ShieldCheck } from 'lucide-react';
 
 function PollView() {
   const { shortId } = useParams();
