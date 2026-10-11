@@ -1,8 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
-import { UserPlus, AlertCircle, Eye, EyeOff } from 'lucide-react';
-import { Vote, ClipboardList } from 'lucide-react';
+import { UserPlus, AlertCircle, Eye, EyeOff, Vote, ClipboardList } from 'lucide-react';
 
 function Register() {
   const { register } = useAuth();
@@ -30,7 +29,7 @@ function Register() {
     try {
       const data = await register(name, email, password, role);
       navigate(data.user.role === 'ORGANIZER' ? '/dashboard' : '/home');
-} catch (err) {
+    } catch (err) {
       if (err.response?.data?.error) {
         setError(err.response.data.error);
       } else if (err.request) {
