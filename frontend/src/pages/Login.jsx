@@ -16,10 +16,17 @@ function Login() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+
+    const trimmedEmail = email.trim();
+    if (!trimmedEmail) {
+      setError('Please enter your email address.');
+      return;
+    }
+
     setLoading(true);
 
     try {
-      const data = await login(email, password);
+      const data = await login(trimmedEmail.toLowerCase(), password);
       navigate(data.user.role === 'ORGANIZER' ? '/dashboard' : '/home');
     } catch (err) {
       if (err.response?.data?.error) {
@@ -58,6 +65,7 @@ function Login() {
               placeholder="you@example.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
+              autoComplete="email"
               required
             />
           </div>
@@ -72,6 +80,7 @@ function Login() {
                 placeholder="••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                autoComplete="current-password"
                 required
               />
               <button

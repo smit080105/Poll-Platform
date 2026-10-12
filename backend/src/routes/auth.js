@@ -17,27 +17,36 @@ const authLimiter = rateLimit({
   legacyHeaders: false,
 });
 
+const normalizeEmail = (value = '') => value.trim().toLowerCase();
+const normalizeName = (value = '') => value.trim();
+
 // Register
 router.post('/register', authLimiter, async (req, res) => {
   try {
     const { email, password, name, role } = req.body;
+    const cleanedEmail = normalizeEmail(email);
+    const cleanedName = normalizeName(name);
 
-    if (!email || !password || !name) {
+    if (!cleanedEmail || !password || !cleanedName) {
       return res.status(400).json({ error: 'Email, password, and name are required.' });
     }
 
-    if (!validateEmail(email)) {
+    if (cleanedName.length < 2) {
+      return res.status(400).json({ error: 'Name must be at least 2 characters long.' });
+    }
+
+    if (!validateEmail(cleanedEmail)) {
       return res.status(400).json({ error: 'Invalid email format.' });
     }
 
-    if (password.length < 6) {
+    if (password.trim().length < 6) {
       return res.status(400).json({ error: 'Password must be at least 6 characters.' });
     }
 
     const validRoles = ['ORGANIZER', 'PARTICIPANT'];
-    const userRole = validRoles.includes(role) ? role : 'PARTICIPANT';
+    const userRole = validRoles.includes(String(role).toUpperCase()) ? String(role).toUpperCase() : 'PARTICIPANT';
 
-    const existingUser = await prisma.user.findUnique({ where: { email } });
+    const existingUser = await prisma.user.findUnique({ where: { email: cleanedEmail } });
     if (existingUser) {
       return res.status(409).json({ error: 'Email already registered.' });
     }
@@ -46,9 +55,9 @@ router.post('/register', authLimiter, async (req, res) => {
 
     const user = await prisma.user.create({
       data: {
-        email,
+        email: cleanedEmail,
         password: hashedPassword,
-        name,
+        name: cleanedName,
         role: userRole
       }
     });
@@ -73,12 +82,17 @@ router.post('/register', authLimiter, async (req, res) => {
 router.post('/login', authLimiter, async (req, res) => {
   try {
     const { email, password } = req.body;
+    const cleanedEmail = normalizeEmail(email);
 
-    if (!email || !password) {
+    if (!cleanedEmail || !password) {
       return res.status(400).json({ error: 'Email and password are required.' });
     }
 
-    const user = await prisma.user.findUnique({ where: { email } });
+    if (!validateEmail(cleanedEmail)) {
+      return res.status(400).json({ error: 'Invalid email format.' });
+    }
+
+    const user = await prisma.user.findUnique({ where: { email: cleanedEmail } });
     if (!user) {
       return res.status(401).json({ error: 'Invalid credentials.' });
     }
