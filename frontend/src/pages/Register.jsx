@@ -19,7 +19,21 @@ function Register() {
     e.preventDefault();
     setError('');
 
-    if (password.length < 6) {
+    const trimmedName = name.trim();
+    const trimmedEmail = email.trim();
+    const normalizedPassword = password.trim();
+
+    if (!trimmedName || trimmedName.length < 2) {
+      setError('Please enter a valid full name with at least 2 characters.');
+      return;
+    }
+
+    if (!trimmedEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail)) {
+      setError('Please enter a valid email address.');
+      return;
+    }
+
+    if (normalizedPassword.length < 6) {
       setError('Password must be at least 6 characters.');
       return;
     }
@@ -27,7 +41,7 @@ function Register() {
     setLoading(true);
 
     try {
-      const data = await register(name, email, password, role);
+      const data = await register(trimmedName, trimmedEmail.toLowerCase(), normalizedPassword, role);
       navigate(data.user.role === 'ORGANIZER' ? '/dashboard' : '/home');
     } catch (err) {
       if (err.response?.data?.error) {
@@ -66,6 +80,7 @@ function Register() {
               placeholder="John Doe"
               value={name}
               onChange={(e) => setName(e.target.value)}
+              autoComplete="name"
               required
             />
           </div>
@@ -79,6 +94,7 @@ function Register() {
               placeholder="you@example.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
+              autoComplete="email"
               required
             />
           </div>
@@ -93,6 +109,7 @@ function Register() {
                 placeholder="Min 6 characters"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                autoComplete="new-password"
                 required
                 minLength={6}
               />
