@@ -67,6 +67,9 @@ jobs:
       - name: Validate Prisma Schema
         run: npx prisma validate
 
+      - name: Run backend unit tests
+        run: npm run test:unit
+
   # ── Docker Build Check ──
   docker:
     name: Docker — Build Test
