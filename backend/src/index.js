@@ -82,3 +82,31 @@ httpServer.listen(PORT, () => {
   console.log(`🚀 PollWave server running on http://localhost:${PORT}`);
   console.log(`📡 Socket.io ready for real-time updates`);
 });
+
+let shuttingDown = false;
+
+const shutdown = (signal) => {
+  if (shuttingDown) return;
+  shuttingDown = true;
+
+  console.log(`Received ${signal}; shutting down gracefully.`);
+  const forceShutdown = setTimeout(() => {
+    console.error('Graceful shutdown timed out; forcing exit.');
+    process.exit(1);
+  }, 10_000);
+  forceShutdown.unref();
+
+  io.close(async () => {
+    clearTimeout(forceShutdown);
+
+    try {
+      await prisma.$disconnect();
+    } catch (error) {
+      console.error('Failed to disconnect Prisma during shutdown:', error);
+      process.exit(1);
+    }
+  });
+};
+
+process.once('SIGINT', () => shutdown('SIGINT'));
+process.once('SIGTERM', () => shutdown('SIGTERM'));
