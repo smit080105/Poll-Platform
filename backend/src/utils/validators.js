@@ -6,10 +6,10 @@ export const validateEmail = (email) => {
 export const validatePollInput = (data) => {
   const errors = [];
 
-  if (!data.title || data.title.trim().length < 3) {
+  if (typeof data.title !== 'string' || data.title.trim().length < 3) {
     errors.push('Title must be at least 3 characters.');
   }
-  if (data.title && data.title.length > 200) {
+  if (typeof data.title === 'string' && data.title.length > 200) {
     errors.push('Title must be 200 characters or fewer.');
   }
   if (data.maxVotes !== undefined && data.maxVotes !== null && data.maxVotes !== '') {
@@ -19,19 +19,31 @@ export const validatePollInput = (data) => {
     }
   }
 
-  if (!data.options || data.options.length < 2) {
+  if (!Array.isArray(data.options) || data.options.length < 2) {
     errors.push('At least 2 options are required.');
   }
 
   if (!data.startDate) {
     errors.push('Start date is required.');
+  } else if (Number.isNaN(new Date(data.startDate).getTime())) {
+    errors.push('Start date must be valid.');
   }
 
   if (!data.endDate) {
     errors.push('End date is required.');
+  } else if (Number.isNaN(new Date(data.endDate).getTime())) {
+    errors.push('End date must be valid.');
   }
 
-  if (data.startDate && data.endDate && new Date(data.startDate) >= new Date(data.endDate)) {
+  const startDate = new Date(data.startDate);
+  const endDate = new Date(data.endDate);
+  if (
+    data.startDate &&
+    data.endDate &&
+    !Number.isNaN(startDate.getTime()) &&
+    !Number.isNaN(endDate.getTime()) &&
+    startDate >= endDate
+  ) {
     errors.push('End date must be after start date.');
   }
 
