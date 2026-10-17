@@ -12,6 +12,10 @@ describe('validateEmail', () => {
       expect(validateEmail(email)).toBe(false);
     }
   );
+
+  it.each([null, undefined, 42, {}])('rejects non-string email input: %p', (email) => {
+    expect(validateEmail(email)).toBe(false);
+  });
 });
 
 describe('validatePollInput', () => {
@@ -47,6 +51,10 @@ describe('validatePollInput', () => {
     ]));
   });
 
+  it.each([null, undefined, [], 'invalid'])('rejects a non-object poll body: %p', (data) => {
+    expect(validatePollInput(data)).toContain('Poll data must be an object.');
+  });
+
   it('rejects titles outside the supported length', () => {
     expect(validatePollInput({ ...validPoll, title: 'No' })).toContain(
       'Title must be at least 3 characters.'
@@ -67,6 +75,20 @@ describe('validatePollInput', () => {
   it('requires at least two poll options', () => {
     expect(validatePollInput({ ...validPoll, options: ['Only one'] })).toContain(
       'At least 2 options are required.'
+    );
+  });
+
+  it('rejects empty or malformed option text', () => {
+    for (const options of [['Yes', '  '], ['Yes', null], ['Yes', { text: 1 }]]) {
+      expect(validatePollInput({ ...validPoll, options })).toContain(
+        'Each option must have non-empty text.'
+      );
+    }
+  });
+
+  it('rejects more options than the UI supports', () => {
+    expect(validatePollInput({ ...validPoll, options: Array(11).fill('Option') })).toContain(
+      'A poll cannot have more than 10 options.'
     );
   });
 
