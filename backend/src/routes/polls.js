@@ -11,7 +11,7 @@ const prisma = new PrismaClient();
 // Create poll (Organizer only)
 router.post('/', authenticate, roleGuard('ORGANIZER'), async (req, res) => {
   try {
-    const { title, description, type, options, startDate, endDate, maxVotes, isPublic } = req.body;
+    const { title, description, type, options, startDate, endDate, maxVotes, isPublic } = req.body ?? {};
 
     const errors = validatePollInput(req.body);
     if (errors.length > 0) {
@@ -26,17 +26,19 @@ router.post('/', authenticate, roleGuard('ORGANIZER'), async (req, res) => {
     const poll = await prisma.poll.create({
       data: {
         shortId,
-        title,
+        title: title.trim(),
         description: description || '',
         type: type || 'SINGLE_CHOICE',
         startDate: new Date(startDate),
         endDate: new Date(endDate),
-        maxVotes: maxVotes || null,
+        maxVotes: maxVotes === undefined || maxVotes === null || maxVotes === '' ? null : Number(maxVotes),
         isPublic: isPublic !== undefined ? isPublic : true,
         status: 'DRAFT',
         organizerId: req.user.id,
         options: {
-          create: options.map(opt => ({ text: typeof opt === 'string' ? opt : opt.text }))
+          create: options.map(opt => ({
+            text: (typeof opt === 'string' ? opt : opt.text).trim()
+          }))
         }
       },
       include: { options: true }
@@ -166,39 +168,46 @@ router.put('/:id', authenticate, roleGuard('ORGANIZER'), async (req, res) => {
       return res.status(400).json({ error: 'Cannot edit an active poll.' });
     }
 
-    const { title, description, type, options, startDate, endDate, maxVotes, isPublic } = req.body;
-
-    // If either date changes, the resulting schedule must still be valid
-    if (startDate || endDate) {
-      const start = new Date(startDate || poll.startDate);
-      const end = new Date(endDate || poll.endDate);
-      if (isNaN(start.getTime()) || isNaN(end.getTime())) {
-        return res.status(400).json({ error: 'Start and end dates must be valid dates.' });
-      }
-      if (end <= start) {
-        return res.status(400).json({ error: 'End date must be after start date.' });
-      }
+    if (!req.body || typeof req.body !== 'object' || Array.isArray(req.body)) {
+      return res.status(400).json({ errors: ['Poll data must be an object.'] });
     }
 
-    // Replacing options must still leave at least 2
-    if (options !== undefined && (!Array.isArray(options) || options.length < 2)) {
-      return res.status(400).json({ error: 'A poll needs at least 2 options.' });
+    const { title, description, type, options, startDate, endDate, maxVotes, isPublic } = req.body;
+    const errors = validatePollInput({
+      title: title === undefined ? poll.title : title,
+      description: description === undefined ? poll.description : description,
+      type: type === undefined ? poll.type : type,
+      options: options === undefined ? (await prisma.option.findMany({
+        where: { pollId: poll.id },
+        select: { text: true }
+      })) : options,
+      startDate: startDate === undefined ? poll.startDate : startDate,
+      endDate: endDate === undefined ? poll.endDate : endDate,
+      maxVotes: maxVotes === undefined ? poll.maxVotes : maxVotes,
+      isPublic: isPublic === undefined ? poll.isPublic : isPublic
+    });
+    if (errors.length > 0) {
+      return res.status(400).json({ errors });
     }
 
     const updated = await prisma.poll.update({
       where: { id: req.params.id },
       data: {
-        ...(title && { title }),
+        ...(title !== undefined && { title: title.trim() }),
         ...(description !== undefined && { description }),
         ...(type && { type }),
         ...(startDate && { startDate: new Date(startDate) }),
         ...(endDate && { endDate: new Date(endDate) }),
-        ...(maxVotes !== undefined && { maxVotes }),
+        ...(maxVotes !== undefined && {
+          maxVotes: maxVotes === null || maxVotes === '' ? null : Number(maxVotes)
+        }),
         ...(isPublic !== undefined && { isPublic }),
         ...(options && {
           options: {
             deleteMany: {},
-            create: options.map(opt => ({ text: typeof opt === 'string' ? opt : opt.text }))
+            create: options.map(opt => ({
+              text: (typeof opt === 'string' ? opt : opt.text).trim()
+            }))
           }
         })
       },

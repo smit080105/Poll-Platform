@@ -23,7 +23,11 @@ const normalizeName = (value = '') => value.trim();
 // Register
 router.post('/register', authLimiter, async (req, res) => {
   try {
-    const { email, password, name, role } = req.body;
+    const { email, password, name, role } = req.body ?? {};
+    if (typeof email !== 'string' || typeof password !== 'string' || typeof name !== 'string') {
+      return res.status(400).json({ error: 'Email, password, and name are required.' });
+    }
+
     const cleanedEmail = normalizeEmail(email);
     const cleanedName = normalizeName(name);
 
@@ -73,6 +77,9 @@ router.post('/register', authLimiter, async (req, res) => {
       user: { id: user.id, email: user.email, name: user.name, role: user.role }
     });
   } catch (error) {
+    if (error.code === 'P2002') {
+      return res.status(409).json({ error: 'Email already registered.' });
+    }
     console.error('Register error:', error);
     res.status(500).json({ error: 'Internal server error.' });
   }
@@ -81,7 +88,11 @@ router.post('/register', authLimiter, async (req, res) => {
 // Login
 router.post('/login', authLimiter, async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { email, password } = req.body ?? {};
+    if (typeof email !== 'string' || typeof password !== 'string') {
+      return res.status(400).json({ error: 'Email and password are required.' });
+    }
+
     const cleanedEmail = normalizeEmail(email);
 
     if (!cleanedEmail || !password) {
