@@ -168,7 +168,11 @@ router.put('/:id', authenticate, roleGuard('ORGANIZER'), async (req, res) => {
       return res.status(400).json({ error: 'Cannot edit an active poll.' });
     }
 
-    const { title, description, type, options, startDate, endDate, maxVotes, isPublic } = req.body ?? {};
+    if (!req.body || typeof req.body !== 'object' || Array.isArray(req.body)) {
+      return res.status(400).json({ errors: ['Poll data must be an object.'] });
+    }
+
+    const { title, description, type, options, startDate, endDate, maxVotes, isPublic } = req.body;
     const errors = validatePollInput({
       title: title === undefined ? poll.title : title,
       description: description === undefined ? poll.description : description,
