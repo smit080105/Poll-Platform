@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import bcrypt from 'bcryptjs';
+import { createHash, timingSafeEqual } from 'node:crypto';
 import jwt from 'jsonwebtoken';
 import rateLimit from 'express-rate-limit';
 import { PrismaClient } from '@prisma/client';
@@ -19,11 +20,20 @@ const authLimiter = rateLimit({
 
 const normalizeEmail = (value = '') => value.trim().toLowerCase();
 const normalizeName = (value = '') => value.trim();
+const matchesOrganizerCode = (providedCode, configuredCode) => {
+  if (typeof providedCode !== 'string') {
+    return false;
+  }
+
+  const providedHash = createHash('sha256').update(providedCode).digest();
+  const configuredHash = createHash('sha256').update(configuredCode).digest();
+  return timingSafeEqual(providedHash, configuredHash);
+};
 
 // Register
 router.post('/register', authLimiter, async (req, res) => {
   try {
-    const { email, password, name, role } = req.body ?? {};
+    const { email, password, name, role, organizerCode } = req.body ?? {};
     if (typeof email !== 'string' || typeof password !== 'string' || typeof name !== 'string') {
       return res.status(400).json({ error: 'Email, password, and name are required.' });
     }
@@ -47,8 +57,22 @@ router.post('/register', authLimiter, async (req, res) => {
       return res.status(400).json({ error: 'Password must be at least 6 characters.' });
     }
 
-    const validRoles = ['ORGANIZER', 'PARTICIPANT'];
-    const userRole = validRoles.includes(String(role).toUpperCase()) ? String(role).toUpperCase() : 'PARTICIPANT';
+    const userRole = role === undefined
+      ? 'PARTICIPANT'
+      : typeof role === 'string' ? role.trim().toUpperCase() : '';
+    if (!['ORGANIZER', 'PARTICIPANT'].includes(userRole)) {
+      return res.status(400).json({ error: 'Role must be ORGANIZER or PARTICIPANT.' });
+    }
+
+    if (userRole === 'ORGANIZER') {
+      const configuredCode = process.env.ORGANIZER_SIGNUP_CODE;
+      if (!configuredCode) {
+        return res.status(503).json({ error: 'Organizer registrations are not enabled.' });
+      }
+      if (!matchesOrganizerCode(organizerCode, configuredCode)) {
+        return res.status(403).json({ error: 'A valid organizer registration code is required.' });
+      }
+    }
 
     const existingUser = await prisma.user.findUnique({ where: { email: cleanedEmail } });
     if (existingUser) {

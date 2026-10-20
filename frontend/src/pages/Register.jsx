@@ -11,6 +11,7 @@ function Register() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [role, setRole] = useState('PARTICIPANT');
+  const [organizerCode, setOrganizerCode] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -38,10 +39,21 @@ function Register() {
       return;
     }
 
+    if (role === 'ORGANIZER' && !organizerCode) {
+      setError('Enter the organizer registration code to create an organizer account.');
+      return;
+    }
+
     setLoading(true);
 
     try {
-      const data = await register(trimmedName, trimmedEmail.toLowerCase(), normalizedPassword, role);
+      const data = await register(
+        trimmedName,
+        trimmedEmail.toLowerCase(),
+        normalizedPassword,
+        role,
+        organizerCode
+      );
       navigate(data.user.role === 'ORGANIZER' ? '/dashboard' : '/home');
     } catch (err) {
       if (err.response?.data?.error) {
@@ -145,6 +157,22 @@ function Register() {
               </div>
             </div>
           </div>
+
+          {role === 'ORGANIZER' && (
+            <div className="form-group">
+              <label className="form-label" htmlFor="organizer-code">Organizer Registration Code</label>
+              <input
+                id="organizer-code"
+                type="password"
+                className="form-input"
+                value={organizerCode}
+                onChange={(e) => setOrganizerCode(e.target.value)}
+                autoComplete="off"
+                required
+              />
+              <small>Ask your PollWave administrator for an organizer code.</small>
+            </div>
+          )}
 
           <button
             type="submit"

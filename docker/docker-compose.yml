@@ -12,7 +12,7 @@ services:
     environment:
       POSTGRES_DB: pollwave
       POSTGRES_USER: pollwave
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-pollwave_secret}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in docker/.env}
     volumes:
       - postgres_data:/var/lib/postgresql/data
     ports:
@@ -32,8 +32,9 @@ services:
     restart: unless-stopped
     command: sh -c "npx prisma db push --skip-generate && node src/index.js"
     environment:
-      DATABASE_URL: postgresql://pollwave:${POSTGRES_PASSWORD:-pollwave_secret}@postgres:5432/pollwave
-      JWT_SECRET: ${JWT_SECRET:-change-me-in-production}
+      DATABASE_URL: postgresql://pollwave:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in docker/.env}@postgres:5432/pollwave
+      JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET in docker/.env}
+      ORGANIZER_SIGNUP_CODE: ${ORGANIZER_SIGNUP_CODE:-}
       PORT: 5000
       CLIENT_URL: http://localhost:3000
       NODE_ENV: production
