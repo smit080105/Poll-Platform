@@ -2,11 +2,11 @@
 
 # 🗳️ PollWave
 
-**Verified elections for communities.**
+**Community polls and elections.**
 
-Not just another poll tool — PollWave is built for housing societies, student unions, and clubs running real decisions: too small for enterprise e-voting, too important for a WhatsApp poll. One vote per person, verified and locked, every time.
+PollWave is built for housing societies, student unions, and clubs running real decisions: too small for enterprise e-voting, too important for a WhatsApp poll. Account-based voting limits each participant to one vote per poll.
 
-Real-time results, organizer/participant roles, and tamper-proof voting — built with React, Express, Prisma, and Socket.io.
+Real-time results, protected organizer registration, and duplicate-vote prevention — built with React, Express, Prisma, and Socket.io.
 
 Create polls, share them instantly with a link, and watch votes pour in live.  
 Tamper-proof, one-person-one-vote integrity built right in.
@@ -18,9 +18,9 @@ Tamper-proof, one-person-one-vote integrity built right in.
 ## ✨ Features
 
 - 🔗 **Instant Shareable Links** — Every poll gets a unique short URL
-- 🛡️ **Tamper-Proof Voting** — Double-layer one-person-one-vote (app + DB constraints)
+- 🛡️ **One Vote per Account** — Application checks backed by a database uniqueness constraint
 - ⚡ **Live Results** — Socket.io powered real-time vote updates
-- 👥 **Role-Based Access** — Organizer and Participant roles
+- 👥 **Protected Organizer Access** — Organizer registration requires a configured signup code
 - 📊 **Rich Dashboard** — Stats, poll management, and analytics
 - 🎨 **Modern Dark UI** — Glassmorphism design with smooth animations
 - 🐳 **Docker Ready** — One-command deployment with Docker Compose
@@ -33,7 +33,7 @@ Tamper-proof, one-person-one-vote integrity built right in.
 |------------|--------------------------------------------|
 | Frontend   | React 18, Vite, Lucide Icons               |
 | Backend    | Node.js, Express, Socket.io                |
-| Database   | Prisma ORM (SQLite dev / PostgreSQL prod)  |
+| Database   | Prisma ORM + PostgreSQL                    |
 | Auth       | JWT (JSON Web Tokens) + bcrypt             |
 | Styling    | Custom CSS with design tokens              |
 | DevOps     | Docker, Docker Compose, GitHub Actions     |
@@ -83,7 +83,8 @@ poll-platform/
 
 - **Node.js** ≥ 20
 - **npm** ≥ 9
-- **Docker** & **Docker Compose** (optional, for containerized deployment)
+- **PostgreSQL** (or Docker Compose for a local PostgreSQL instance)
+- **Docker** & **Docker Compose** (for the included database and containerized workflows)
 
 ### Local Development
 
@@ -95,29 +96,35 @@ cd poll-platform
 # 2. Install dependencies
 npm run install:all
 
-# 3. Set up the backend environment
+# 3. Start the local PostgreSQL database
+docker compose -f docker/docker-compose.dev.yml up -d postgres
+
+# 4. Set up the backend environment
 cp backend/.env.example backend/.env
 
-# 4. Initialize the database
+# 5. Initialize the database
 npm run db:push
 
-# 5. Start both servers
+# 6. Start both servers
 npm run dev
 ```
 
 The frontend will be available at **http://localhost:5173** and the API at **http://localhost:5000**.
+To create organizer accounts, set `ORGANIZER_SIGNUP_CODE` in `backend/.env`; leave it empty to disable organizer registration. The development Docker Compose stack uses `pollwave-dev-organizer` by default.
 
 ### Docker Deployment
 
 ```bash
 # Production (with PostgreSQL)
-docker compose -f docker/docker-compose.yml up --build
+cp docker/.env.example docker/.env
+# Replace the placeholder values before deploying.
+docker compose --env-file docker/.env -f docker/docker-compose.yml up --build
 
 # Development (with hot reload)
 docker compose -f docker/docker-compose.dev.yml up --build
 ```
 
-Production app will be available at **http://localhost:3000**.
+Production app will be available at **http://localhost:3000**. Set a strong `ORGANIZER_SIGNUP_CODE` in `docker/.env` to enable organizer registration; organizer registrations stay disabled if it is empty.
 
 ---
 
@@ -137,6 +144,8 @@ Run from the project root:
 | `npm run docker:up`       | Start production Docker stack        |
 | `npm run docker:dev`      | Start development Docker stack       |
 | `npm run docker:down`     | Stop Docker stack                    |
+
+Run backend unit tests with `cd backend && npm run test:unit`.
 
 ---
 

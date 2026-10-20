@@ -4,16 +4,35 @@
 # Usage: docker compose -f docker/docker-compose.dev.yml up --build
 
 services:
+  # ── PostgreSQL Database ──
+  postgres:
+    image: postgres:16-alpine
+    container_name: pollwave-db-dev
+    environment:
+      POSTGRES_DB: pollwave_dev
+      POSTGRES_USER: pollwave
+      POSTGRES_PASSWORD: pollwave_dev
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_dev_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U pollwave -d pollwave_dev"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
   # ── Backend (Dev — hot reload with nodemon) ──
   backend:
     build:
       context: ..
       dockerfile: docker/Dockerfile.backend
     container_name: pollwave-backend-dev
-    command: npx nodemon src/index.js
+    command: sh -c "npx prisma db push --skip-generate && npx nodemon src/index.js"
     environment:
-      DATABASE_URL: "file:./dev.db"
+      DATABASE_URL: postgresql://pollwave:pollwave_dev@postgres:5432/pollwave_dev
       JWT_SECRET: dev-secret-key-not-for-production
+      ORGANIZER_SIGNUP_CODE: ${ORGANIZER_SIGNUP_CODE:-pollwave-dev-organizer}
       PORT: 5000
       CLIENT_URL: http://localhost:5173
       NODE_ENV: development
@@ -22,6 +41,9 @@ services:
     volumes:
       - ../backend/src:/app/src
       - ../backend/prisma:/app/prisma
+    depends_on:
+      postgres:
+        condition: service_healthy
 
   # ── Frontend (Dev — Vite dev server) ──
   frontend:
@@ -30,7 +52,7 @@ services:
     working_dir: /app
     command: sh -c "npm install && npm run dev -- --host 0.0.0.0"
     environment:
-      VITE_API_URL: http://backend:5000
+      VITE_API_URL: http://localhost:5000
     ports:
       - "5173:5173"
     volumes:
@@ -41,3 +63,4 @@ services:
 
 volumes:
   frontend_node_modules:
+  postgres_dev_data:

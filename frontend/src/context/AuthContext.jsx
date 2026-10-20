@@ -50,8 +50,8 @@ export function AuthProvider({ children }) {
     return res.data;
   };
 
-  const register = async (name, email, password, role) => {
-    const res = await api.post('/auth/register', { name, email, password, role });
+  const register = async (name, email, password, role, organizerCode) => {
+    const res = await api.post('/auth/register', { name, email, password, role, organizerCode });
     localStorage.setItem('pollwave_token', res.data.token);
     localStorage.setItem('pollwave_user', JSON.stringify(res.data.user));
     setUser(res.data.user);
