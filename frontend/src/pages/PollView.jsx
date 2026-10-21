@@ -17,12 +17,15 @@ function PollView() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
+  const [requiresSignIn, setRequiresSignIn] = useState(false);
   const [success, setSuccess] = useState('');
   const [timeLeft, setTimeLeft] = useState('');
   const [showConfirm, setShowConfirm] = useState(false);
 
   // Fetch poll data
   const fetchPoll = useCallback(async () => {
+    setError('');
+    setRequiresSignIn(false);
     try {
       const res = await api.get(`/polls/s/${shortId}`);
       setPoll(res.data);
@@ -38,7 +41,8 @@ function PollView() {
         }
       }
     } catch (err) {
-      setError('Poll not found or has been removed.');
+      setRequiresSignIn(err.response?.status === 401);
+      setError(err.response?.data?.error || 'Poll not found or has been removed.');
     } finally {
       setLoading(false);
     }
@@ -52,7 +56,10 @@ function PollView() {
   useEffect(() => {
     if (!poll) return;
 
-    const socket = io(import.meta.env.VITE_API_URL || 'http://localhost:5000', { transports: ['websocket', 'polling'] });
+    const socket = io(import.meta.env.VITE_API_URL || window.location.origin, {
+      transports: ['websocket', 'polling'],
+      auth: { token: localStorage.getItem('pollwave_token') }
+    });
     socket.emit('join-poll', poll.id);
 
     socket.on('vote-update', (data) => {
@@ -150,9 +157,19 @@ function PollView() {
       <div className="poll-view">
         <div className="empty-state">
           <div className="empty-state-icon"><AlertCircle size={40} strokeWidth={1.5} /></div>
-          <h3>Poll Not Found</h3>
+          <h3>{requiresSignIn ? 'Sign In Required' : 'Poll Not Found'}</h3>
           <p>{error}</p>
-          <Link to="/" className="btn btn-primary" style={{ marginTop: '16px' }}>Go Home</Link>
+          {requiresSignIn ? (
+            <Link
+              to={`/login?returnTo=${encodeURIComponent(window.location.pathname)}`}
+              className="btn btn-primary"
+              style={{ marginTop: '16px' }}
+            >
+              Sign In to Continue
+            </Link>
+          ) : (
+            <Link to="/" className="btn btn-primary" style={{ marginTop: '16px' }}>Go Home</Link>
+          )}
         </div>
       </div>
     );

@@ -20,6 +20,7 @@ model User {
 
 model Poll {
   id          String   @id @default(uuid())
+  shortId     String   @unique
   title       String
   description String   @default("")
   type        String   @default("SINGLE_CHOICE")

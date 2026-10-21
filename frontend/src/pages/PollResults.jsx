@@ -37,7 +37,10 @@ function PollResults() {
   useEffect(() => {
     if (!poll) return;
 
-    const socket = io(import.meta.env.VITE_API_URL || 'http://localhost:5000', { transports: ['websocket', 'polling'] });
+    const socket = io(import.meta.env.VITE_API_URL || window.location.origin, {
+      transports: ['websocket', 'polling'],
+      auth: { token: localStorage.getItem('pollwave_token') }
+    });
     socket.emit('join-poll', poll.id);
 
     socket.on('vote-update', (data) => {

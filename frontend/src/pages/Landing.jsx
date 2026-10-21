@@ -15,18 +15,18 @@ function Landing() {
       <section className="landing-hero">
         <div className="landing-badge">
           <span className="landing-badge-dot" />
-          Verified elections for communities
+          Polling for your community
         </div>
 
         <h1 className="landing-title">
           Not just another poll tool.<br />
-          <span className="gradient-text">Elections you can trust.</span>
+          <span className="gradient-text">Community decisions, made clear.</span>
         </h1>
 
         <p className="landing-subtitle">
           Built for housing societies, student unions, and clubs running real
           decisions — too small for enterprise e-voting, too important for a
-          WhatsApp poll. One vote per person, verified, every time.
+          WhatsApp poll. Each account can cast one vote per poll.
         </p>
 
         <div className="landing-actions">
@@ -55,10 +55,10 @@ function Landing() {
           <div className="feature-icon">
             <Shield size={22} />
           </div>
-          <h3>Tamper-Proof Voting</h3>
+          <h3>One Vote per Account</h3>
           <p>
-            Double-layer one-person-one-vote protection with application-level
-            checks and database-level constraints. Your results stay honest.
+            A database uniqueness constraint prevents the same account from
+            submitting multiple votes in a poll.
           </p>
         </div>
 

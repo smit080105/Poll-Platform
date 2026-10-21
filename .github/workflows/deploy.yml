@@ -1,20 +1,11 @@
 # ============================================
-# PollWave — Deploy Pipeline
+# PollWave — Image Publishing Pipeline
 # ============================================
 
-name: Deploy
+name: Publish Images
 
 on:
   workflow_dispatch:
-    inputs:
-      environment:
-        description: "Target environment"
-        required: true
-        default: "staging"
-        type: choice
-        options:
-          - staging
-          - production
 
 env:
   REGISTRY: ghcr.io
@@ -63,9 +54,9 @@ jobs:
             ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}/backend:${{ steps.tag.outputs.tag }}
             ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}/backend:latest
 
-      - name: Deploy Summary
+      - name: Published Image Summary
         run: |
-          echo "## 🚀 Deploy Summary" >> $GITHUB_STEP_SUMMARY
-          echo "- **Environment:** ${{ inputs.environment }}" >> $GITHUB_STEP_SUMMARY
+          echo "## Container Images Published" >> $GITHUB_STEP_SUMMARY
+          echo "No deployment target is configured by this workflow." >> $GITHUB_STEP_SUMMARY
           echo "- **Frontend:** \`${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}/frontend:${{ steps.tag.outputs.tag }}\`" >> $GITHUB_STEP_SUMMARY
           echo "- **Backend:** \`${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}/backend:${{ steps.tag.outputs.tag }}\`" >> $GITHUB_STEP_SUMMARY
