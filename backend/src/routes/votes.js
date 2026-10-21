@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { PrismaClient } from '@prisma/client';
-import { authenticate } from '../middleware/auth.js';
+import { authenticate, optionalAuthenticate } from '../middleware/auth.js';
+import { canAccessPoll } from '../utils/pollAccess.js';
 
 const router = Router();
 const prisma = new PrismaClient();
@@ -107,8 +108,8 @@ router.post('/:pollId', authenticate, async (req, res) => {
   }
 });
 
-// Get poll results
-router.get('/:pollId/results', async (req, res) => {
+// Published public results are public; private polls require an account.
+router.get('/:pollId/results', optionalAuthenticate, async (req, res) => {
   try {
     const { pollId } = req.params;
 
@@ -123,6 +124,12 @@ router.get('/:pollId/results', async (req, res) => {
     });
 
     if (!poll) {
+      return res.status(404).json({ error: 'Poll not found.' });
+    }
+    if (!canAccessPoll(poll, req.user)) {
+      if (!req.user && poll.status === 'ACTIVE' && !poll.isPublic) {
+        return res.status(401).json({ error: 'Sign in to view this private poll.' });
+      }
       return res.status(404).json({ error: 'Poll not found.' });
     }
 
@@ -149,6 +156,11 @@ router.get('/:pollId/results', async (req, res) => {
 router.get('/:pollId/check', authenticate, async (req, res) => {
   try {
     const { pollId } = req.params;
+    const poll = await prisma.poll.findUnique({ where: { id: pollId } });
+
+    if (!poll || !canAccessPoll(poll, req.user)) {
+      return res.status(404).json({ error: 'Poll not found.' });
+    }
 
     const vote = await prisma.vote.findUnique({
       where: { userId_pollId: { userId: req.user.id, pollId } }

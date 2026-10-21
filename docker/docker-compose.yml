@@ -15,8 +15,6 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in docker/.env}
     volumes:
       - postgres_data:/var/lib/postgresql/data
-    ports:
-      - "5432:5432"
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U pollwave"]
       interval: 10s
@@ -30,19 +28,33 @@ services:
       dockerfile: docker/Dockerfile.backend
     container_name: pollwave-backend
     restart: unless-stopped
-    command: sh -c "npx prisma db push --skip-generate && node src/index.js"
+    command: node src/index.js
     environment:
       DATABASE_URL: postgresql://pollwave:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in docker/.env}@postgres:5432/pollwave
       JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET in docker/.env}
       ORGANIZER_SIGNUP_CODE: ${ORGANIZER_SIGNUP_CODE:-}
       PORT: 5000
-      CLIENT_URL: http://localhost:3000
+      CLIENT_URL: ${CLIENT_URL:-http://localhost:3000}
       NODE_ENV: production
-    ports:
-      - "5000:5000"
     depends_on:
       postgres:
         condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+
+  # ── Apply versioned database migrations before starting the API ──
+  migrate:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.backend
+    container_name: pollwave-migrate
+    command: npx prisma migrate deploy
+    environment:
+      DATABASE_URL: postgresql://pollwave:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in docker/.env}@postgres:5432/pollwave
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: "no"
 
   # ── Frontend (Nginx) ──
   frontend:

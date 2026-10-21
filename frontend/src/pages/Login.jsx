@@ -1,11 +1,12 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
 import { LogIn, AlertCircle, Eye, EyeOff } from 'lucide-react';
 
 function Login() {
   const { login } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -27,7 +28,8 @@ function Login() {
 
     try {
       const data = await login(trimmedEmail.toLowerCase(), password);
-      navigate(data.user.role === 'ORGANIZER' ? '/dashboard' : '/home');
+      const returnTo = searchParams.get('returnTo');
+      navigate(returnTo?.startsWith('/poll/') ? returnTo : data.user.role === 'ORGANIZER' ? '/dashboard' : '/home');
     } catch (err) {
       if (err.response?.data?.error) {
         setError(err.response.data.error);

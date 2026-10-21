@@ -1,8 +1,9 @@
 import { Router } from 'express';
 import { PrismaClient } from '@prisma/client';
-import { authenticate } from '../middleware/auth.js';
+import { authenticate, optionalAuthenticate } from '../middleware/auth.js';
 import { roleGuard } from '../middleware/roleGuard.js';
 import { generateShortId } from '../utils/generateId.js';
+import { canAccessPoll } from '../utils/pollAccess.js';
 import { validatePollInput } from '../utils/validators.js';
 
 const router = Router();
@@ -96,8 +97,8 @@ router.get('/public', async (req, res) => {
   }
 });
 
-// Get poll by shortId (shareable link)
-router.get('/s/:shortId', async (req, res) => {
+// Get a published poll by shareable link. Private polls require an account.
+router.get('/s/:shortId', optionalAuthenticate, async (req, res) => {
   try {
     const poll = await prisma.poll.findUnique({
       where: { shortId: req.params.shortId },
@@ -113,6 +114,12 @@ router.get('/s/:shortId', async (req, res) => {
     });
 
     if (!poll) {
+      return res.status(404).json({ error: 'Poll not found.' });
+    }
+    if (!canAccessPoll(poll, req.user)) {
+      if (!req.user && poll.status === 'ACTIVE' && !poll.isPublic) {
+        return res.status(401).json({ error: 'Sign in to view this private poll.' });
+      }
       return res.status(404).json({ error: 'Poll not found.' });
     }
 

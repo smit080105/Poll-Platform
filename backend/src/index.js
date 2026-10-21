@@ -5,10 +5,12 @@ import cors from 'cors';
 import helmet from 'helmet';
 import compression from 'compression';
 import dotenv from 'dotenv';
+import jwt from 'jsonwebtoken';
 import { PrismaClient } from '@prisma/client';
 import authRoutes from './routes/auth.js';
 import pollRoutes from './routes/polls.js';
 import voteRoutes from './routes/votes.js';
+import { canAccessPoll } from './utils/pollAccess.js';
 
 dotenv.config();
 
@@ -31,6 +33,17 @@ const io = new Server(httpServer, {
   cors: {
     origin: process.env.CLIENT_URL || 'http://localhost:5173',
     methods: ['GET', 'POST', 'PUT', 'DELETE']
+  }
+});
+io.use((socket, next) => {
+  const token = socket.handshake.auth?.token;
+  if (!token) return next();
+
+  try {
+    socket.data.user = jwt.verify(token, process.env.JWT_SECRET, { algorithms: ['HS256'] });
+    return next();
+  } catch {
+    return next(new Error('Invalid or expired token.'));
   }
 });
 
@@ -63,9 +76,21 @@ app.get('/api/health', async (req, res) => {
 io.on('connection', (socket) => {
   console.log('🔌 Client connected:', socket.id);
 
-  socket.on('join-poll', (pollId) => {
-    socket.join(`poll:${pollId}`);
-    console.log(`📊 Socket ${socket.id} joined poll:${pollId}`);
+  socket.on('join-poll', async (pollId) => {
+    if (typeof pollId !== 'string' || pollId.length > 64) return;
+
+    try {
+      const poll = await prisma.poll.findUnique({
+        where: { id: pollId },
+        select: { organizerId: true, status: true, isPublic: true }
+      });
+      if (poll && canAccessPoll(poll, socket.data.user)) {
+        socket.join(`poll:${pollId}`);
+      }
+    } catch (error) {
+      console.error('Failed to authorize poll socket room:', error);
+      socket.disconnect(true);
+    }
   });
 
   socket.on('leave-poll', (pollId) => {
