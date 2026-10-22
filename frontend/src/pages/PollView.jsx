@@ -53,17 +53,19 @@ function PollView() {
   }, [fetchPoll]);
 
   // Real-time updates via Socket.io
+  const currentPollId = poll?.id;
+
   useEffect(() => {
-    if (!poll) return;
+    if (!currentPollId) return;
 
     const socket = io(import.meta.env.VITE_API_URL || window.location.origin, {
       transports: ['websocket', 'polling'],
       auth: { token: localStorage.getItem('pollwave_token') }
     });
-    socket.emit('join-poll', poll.id);
+    socket.emit('join-poll', currentPollId);
 
     socket.on('vote-update', (data) => {
-      if (data.pollId === poll.id) {
+      if (data.pollId === currentPollId) {
         setPoll(prev => ({
           ...prev,
           options: prev.options.map(opt => {
@@ -76,10 +78,21 @@ function PollView() {
     });
 
     return () => {
-      socket.emit('leave-poll', poll.id);
+      socket.emit('leave-poll', currentPollId);
       socket.disconnect();
     };
-  }, [poll?.id]);
+  }, [currentPollId]);
+
+  const formatDuration = (ms) => {
+    const days = Math.floor(ms / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((ms % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    const minutes = Math.floor((ms % (1000 * 60 * 60)) / (1000 * 60));
+    const seconds = Math.floor((ms % (1000 * 60)) / 1000);
+
+    if (days > 0) return `${days}d ${hours}h ${minutes}m`;
+    if (hours > 0) return `${hours}h ${minutes}m ${seconds}s`;
+    return `${minutes}m ${seconds}s`;
+  };
 
   // Countdown timer
   useEffect(() => {
@@ -105,17 +118,6 @@ function PollView() {
     const interval = setInterval(updateTimer, 1000);
     return () => clearInterval(interval);
   }, [poll]);
-
-  const formatDuration = (ms) => {
-    const days = Math.floor(ms / (1000 * 60 * 60 * 24));
-    const hours = Math.floor((ms % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-    const minutes = Math.floor((ms % (1000 * 60 * 60)) / (1000 * 60));
-    const seconds = Math.floor((ms % (1000 * 60)) / 1000);
-
-    if (days > 0) return `${days}d ${hours}h ${minutes}m`;
-    if (hours > 0) return `${hours}h ${minutes}m ${seconds}s`;
-    return `${minutes}m ${seconds}s`;
-  };
 
   const handleVoteClick = () => {
     if (!selectedOption || !user) return;
@@ -210,7 +212,7 @@ function PollView() {
             <div className="modal-box" onClick={(e) => e.stopPropagation()}>
               <h3>Confirm your vote</h3>
               <p>
-                You're voting for <strong>
+                You&apos;re voting for <strong>
                   {poll.options.find(o => o.id === selectedOption)?.text}
                 </strong>. Votes are locked once cast and cannot be changed.
               </p>
@@ -230,7 +232,7 @@ function PollView() {
         {hasVoted && (
           <div className="voted-message">
             <div className="voted-message-icon"><Check size={28} strokeWidth={2.5} /></div>
-            <h3>You've already voted!</h3>
+            <h3>You&apos;ve already voted!</h3>
             <p>Your response has been recorded. Results are shown below.</p>
           </div>
         )}

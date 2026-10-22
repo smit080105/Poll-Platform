@@ -44,8 +44,8 @@ export const validatePollInput = (data) => {
   if (data.description !== undefined && typeof data.description !== 'string') {
     errors.push('Description must be text.');
   }
-  if (data.type !== undefined && typeof data.type !== 'string') {
-    errors.push('Poll type must be text.');
+  if (data.type !== undefined && data.type !== 'SINGLE_CHOICE') {
+    errors.push('Poll type must be SINGLE_CHOICE.');
   }
   if (data.isPublic !== undefined && typeof data.isPublic !== 'boolean') {
     errors.push('Poll visibility must be true or false.');

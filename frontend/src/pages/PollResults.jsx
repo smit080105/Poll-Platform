@@ -3,11 +3,12 @@ import { useParams, useNavigate } from 'react-router-dom';
 import api from '../services/api.js';
 import { io } from 'socket.io-client';
 import LoadingSpinner from '../components/LoadingSpinner.jsx';
-import { ArrowLeft, Copy, Check, Link as LinkIcon, Share2, Download } from 'lucide-react';
+import { ArrowLeft, Copy, Check, Share2, Download } from 'lucide-react';
 
 function PollResults() {
   const { pollId } = useParams();
   const navigate = useNavigate();
+  const currentPollId = poll?.id;
 
   const [poll, setPoll] = useState(null);
   const [results, setResults] = useState(null);
@@ -24,7 +25,7 @@ function PollResults() {
         ]);
         setPoll(pollRes.data);
         setResults(resultsRes.data);
-      } catch (err) {
+      } catch {
         console.error('Failed to load poll results');
       } finally {
         setLoading(false);
@@ -35,16 +36,16 @@ function PollResults() {
 
   // Real-time updates
   useEffect(() => {
-    if (!poll) return;
+    if (!currentPollId) return;
 
     const socket = io(import.meta.env.VITE_API_URL || window.location.origin, {
       transports: ['websocket', 'polling'],
       auth: { token: localStorage.getItem('pollwave_token') }
     });
-    socket.emit('join-poll', poll.id);
+    socket.emit('join-poll', currentPollId);
 
     socket.on('vote-update', (data) => {
-      if (data.pollId === poll.id) {
+      if (data.pollId === currentPollId) {
         setResults(prev => ({
           ...prev,
           totalVotes: data.totalVotes,
@@ -63,10 +64,10 @@ function PollResults() {
     });
 
     return () => {
-      socket.emit('leave-poll', poll.id);
+      socket.emit('leave-poll', currentPollId);
       socket.disconnect();
     };
-  }, [poll?.id]);
+  }, [currentPollId]);
 
   const copyLink = () => {
     if (!poll) return;

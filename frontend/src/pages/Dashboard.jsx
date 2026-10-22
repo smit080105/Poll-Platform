@@ -18,7 +18,7 @@ function Dashboard() {
     try {
       const res = await api.get('/polls');
       setPolls(res.data);
-    } catch (err) {
+    } catch {
       setError('Failed to load polls.');
     } finally {
       setLoading(false);

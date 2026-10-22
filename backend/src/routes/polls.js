@@ -5,6 +5,7 @@ import { roleGuard } from '../middleware/roleGuard.js';
 import { generateShortId } from '../utils/generateId.js';
 import { canAccessPoll } from '../utils/pollAccess.js';
 import { validatePollInput } from '../utils/validators.js';
+import { logError } from '../utils/logger.js';
 
 const router = Router();
 const prisma = new PrismaClient();
@@ -47,7 +48,7 @@ router.post('/', authenticate, roleGuard('ORGANIZER'), async (req, res) => {
 
     res.status(201).json(poll);
   } catch (error) {
-    console.error('Create poll error:', error);
+    logError(req, error, 'Create poll request failed');
     res.status(500).json({ error: 'Internal server error.' });
   }
 });
@@ -66,7 +67,7 @@ router.get('/', authenticate, roleGuard('ORGANIZER'), async (req, res) => {
 
     res.json(polls);
   } catch (error) {
-    console.error('List polls error:', error);
+    logError(req, error, 'List polls request failed');
     res.status(500).json({ error: 'Internal server error.' });
   }
 });
@@ -92,7 +93,7 @@ router.get('/public', async (req, res) => {
 
     res.json(polls);
   } catch (error) {
-    console.error('List public polls error:', error);
+    logError(req, error, 'List public polls request failed');
     res.status(500).json({ error: 'Internal server error.' });
   }
 });
@@ -125,7 +126,7 @@ router.get('/s/:shortId', optionalAuthenticate, async (req, res) => {
 
     res.json(poll);
   } catch (error) {
-    console.error('Get poll error:', error);
+    logError(req, error, 'Get poll request failed');
     res.status(500).json({ error: 'Internal server error.' });
   }
 });
@@ -155,7 +156,7 @@ router.get('/:id', authenticate, async (req, res) => {
 
     res.json(poll);
   } catch (error) {
-    console.error('Get poll error:', error);
+    logError(req, error, 'Get poll request failed');
     res.status(500).json({ error: 'Internal server error.' });
   }
 });
@@ -223,7 +224,7 @@ router.put('/:id', authenticate, roleGuard('ORGANIZER'), async (req, res) => {
 
     res.json(updated);
   } catch (error) {
-    console.error('Update poll error:', error);
+    logError(req, error, 'Update poll request failed');
     res.status(500).json({ error: 'Internal server error.' });
   }
 });
@@ -260,7 +261,7 @@ router.post('/:id/publish', authenticate, roleGuard('ORGANIZER'), async (req, re
 
     res.json(updated);
   } catch (error) {
-    console.error('Publish poll error:', error);
+    logError(req, error, 'Publish poll request failed');
     res.status(500).json({ error: 'Internal server error.' });
   }
 });
@@ -286,7 +287,7 @@ router.delete('/:id', authenticate, roleGuard('ORGANIZER'), async (req, res) => 
 
     res.json({ message: 'Poll deleted successfully.' });
   } catch (error) {
-    console.error('Delete poll error:', error);
+    logError(req, error, 'Delete poll request failed');
     res.status(500).json({ error: 'Internal server error.' });
   }
 });

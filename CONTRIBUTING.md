@@ -53,7 +53,7 @@ We follow [Conventional Commits](https://www.conventionalcommits.org/):
 ## Pull Request Guidelines
 
 1. Fill out the PR template completely
-2. Ensure CI passes (frontend builds, backend validates)
+2. Ensure CI passes (frontend lint/build, backend unit/integration tests, Prisma validation, and Docker builds)
 3. Include screenshots for UI changes
 4. Keep PRs focused — one feature per PR
 5. Update documentation if needed

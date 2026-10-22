@@ -6,6 +6,7 @@ import rateLimit from 'express-rate-limit';
 import { PrismaClient } from '@prisma/client';
 import { authenticate } from '../middleware/auth.js';
 import { validateEmail } from '../utils/validators.js';
+import { logError } from '../utils/logger.js';
 
 const router = Router();
 const prisma = new PrismaClient();
@@ -104,7 +105,7 @@ router.post('/register', authLimiter, async (req, res) => {
     if (error.code === 'P2002') {
       return res.status(409).json({ error: 'Email already registered.' });
     }
-    console.error('Register error:', error);
+    logError(req, error, 'Register request failed');
     res.status(500).json({ error: 'Internal server error.' });
   }
 });
@@ -148,7 +149,7 @@ router.post('/login', authLimiter, async (req, res) => {
       user: { id: user.id, email: user.email, name: user.name, role: user.role }
     });
   } catch (error) {
-    console.error('Login error:', error);
+    logError(req, error, 'Login request failed');
     res.status(500).json({ error: 'Internal server error.' });
   }
 });
@@ -167,7 +168,7 @@ router.get('/me', authenticate, async (req, res) => {
 
     res.json(user);
   } catch (error) {
-    console.error('Get user error:', error);
+    logError(req, error, 'Get current user request failed');
     res.status(500).json({ error: 'Internal server error.' });
   }
 });

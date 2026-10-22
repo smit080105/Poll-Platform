@@ -17,7 +17,7 @@ function ParticipantHome() {
       try {
         const res = await api.get('/polls/public');
         setPolls(res.data);
-      } catch (err) {
+      } catch {
         console.error('Failed to load polls');
       } finally {
         setLoading(false);

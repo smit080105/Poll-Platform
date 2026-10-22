@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { PrismaClient } from '@prisma/client';
 import { authenticate, optionalAuthenticate } from '../middleware/auth.js';
 import { canAccessPoll } from '../utils/pollAccess.js';
+import { logError } from '../utils/logger.js';
 
 const router = Router();
 const prisma = new PrismaClient();
@@ -103,7 +104,7 @@ router.post('/:pollId', authenticate, async (req, res) => {
     if (error.code === 'P2002') {
       return res.status(409).json({ error: 'You have already voted in this poll.' });
     }
-    console.error('Vote error:', error);
+    logError(req, error, 'Submit vote request failed');
     res.status(500).json({ error: 'Internal server error.' });
   }
 });
@@ -147,7 +148,7 @@ router.get('/:pollId/results', optionalAuthenticate, async (req, res) => {
       }))
     });
   } catch (error) {
-    console.error('Results error:', error);
+    logError(req, error, 'Get poll results request failed');
     res.status(500).json({ error: 'Internal server error.' });
   }
 });
@@ -171,7 +172,7 @@ router.get('/:pollId/check', authenticate, async (req, res) => {
       votedOptionId: vote?.optionId || null
     });
   } catch (error) {
-    console.error('Check vote error:', error);
+    logError(req, error, 'Check vote request failed');
     res.status(500).json({ error: 'Internal server error.' });
   }
 });
