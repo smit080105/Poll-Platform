@@ -8,5 +8,8 @@ describe('Health check', () => {
     const res = await request(BASE_URL).get('/api/health');
     expect(res.statusCode).toBe(200);
     expect(res.body.status).toBe('ok');
+    expect(res.headers['x-request-id']).toMatch(
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+    );
   });
 });

@@ -146,6 +146,8 @@ docker compose --env-file docker/.env -f docker/docker-compose.yml up --build
 
 The second migration adds unique share IDs to existing polls. Do not mark the baseline as applied to an empty or structurally different database; inspect and reconcile it first. The Compose migration service runs `migrate deploy` automatically after this one-time baseline step. `db:push` remains available for local development and should not be used for production releases.
 
+The database-integrity migration constrains roles, poll types, and statuses to values supported by the application. If an existing database contains other values, migration stops with an explicit error; reconcile those records before retrying.
+
 ---
 
 ## 🔧 Available Scripts
@@ -167,6 +169,7 @@ Run from the project root:
 | `npm run docker:down`     | Stop Docker stack                    |
 
 Run backend unit tests with `cd backend && npm run test:unit`. CI also validates the Prisma schema and builds both Docker images.
+Run frontend linting with `npm run lint`. Backend integration tests require a migrated PostgreSQL database and a running API; CI starts both before running `cd backend && npm run test:integration`.
 
 ---
 

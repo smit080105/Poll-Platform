@@ -4,6 +4,7 @@
   "private": true,
   "description": "PollWave — Real-Time Poll & Survey Intelligence Platform",
   "scripts": {
+    "lint": "eslint frontend/src",
     "dev": "npm run dev:backend & npm run dev:frontend",
     "dev:frontend": "cd frontend && npm run dev",
     "dev:backend": "cd backend && npm run dev",

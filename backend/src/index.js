@@ -1,25 +1,25 @@
 import express from 'express';
 import { createServer } from 'http';
+import { randomUUID } from 'node:crypto';
+import { performance } from 'node:perf_hooks';
 import { Server } from 'socket.io';
 import cors from 'cors';
 import helmet from 'helmet';
 import compression from 'compression';
-import dotenv from 'dotenv';
 import jwt from 'jsonwebtoken';
 import { PrismaClient } from '@prisma/client';
 import authRoutes from './routes/auth.js';
 import pollRoutes from './routes/polls.js';
 import voteRoutes from './routes/votes.js';
 import { canAccessPoll } from './utils/pollAccess.js';
-
-dotenv.config();
+import { logger } from './utils/logger.js';
 
 if (!process.env.DATABASE_URL) {
-  console.error('❌ Missing required environment variable: DATABASE_URL');
+  logger.fatal('Missing required environment variable: DATABASE_URL');
   process.exit(1);
 }
 if (!process.env.JWT_SECRET) {
-  console.error('❌ Missing required environment variable: JWT_SECRET');
+  logger.fatal('Missing required environment variable: JWT_SECRET');
   process.exit(1);
 }
 
@@ -53,6 +53,22 @@ app.use(cors({
 }));
 app.use(helmet());
 app.use(compression());
+app.use((req, res, next) => {
+  const requestId = randomUUID();
+  const startedAt = performance.now();
+  req.id = requestId;
+  req.log = logger.child({ requestId });
+  res.setHeader('X-Request-Id', requestId);
+  res.on('finish', () => {
+    req.log.info({
+      method: req.method,
+      path: req.path,
+      statusCode: res.statusCode,
+      responseTimeMs: Math.round(performance.now() - startedAt)
+    }, 'HTTP request completed');
+  });
+  next();
+});
 app.use(express.json());
 
 // Make io accessible to routes
@@ -68,13 +84,14 @@ app.get('/api/health', async (req, res) => {
     await prisma.$queryRaw`SELECT 1`;
     res.json({ status: 'ok', database: 'connected', timestamp: new Date().toISOString() });
   } catch (err) {
+    req.log.error({ err }, 'Health check failed');
     res.status(503).json({ status: 'error', database: 'unreachable', timestamp: new Date().toISOString() });
   }
 });
 
 // Socket.io connection handling
 io.on('connection', (socket) => {
-  console.log('🔌 Client connected:', socket.id);
+  logger.info({ socketId: socket.id }, 'Socket connected');
 
   socket.on('join-poll', async (pollId) => {
     if (typeof pollId !== 'string' || pollId.length > 64) return;
@@ -88,24 +105,25 @@ io.on('connection', (socket) => {
         socket.join(`poll:${pollId}`);
       }
     } catch (error) {
-      console.error('Failed to authorize poll socket room:', error);
+      logger.error({ err: error, socketId: socket.id }, 'Failed to authorize poll socket room');
       socket.disconnect(true);
     }
   });
 
   socket.on('leave-poll', (pollId) => {
+    if (typeof pollId !== 'string' || pollId.length > 64) return;
     socket.leave(`poll:${pollId}`);
   });
 
   socket.on('disconnect', () => {
-    console.log('❌ Client disconnected:', socket.id);
+    logger.info({ socketId: socket.id }, 'Socket disconnected');
   });
 });
 
 const PORT = process.env.PORT || 5000;
 httpServer.listen(PORT, () => {
-  console.log(`🚀 PollWave server running on http://localhost:${PORT}`);
-  console.log(`📡 Socket.io ready for real-time updates`);
+  logger.info({ port: PORT }, 'PollWave server started');
+  logger.info('Socket.io ready for real-time updates');
 });
 
 let shuttingDown = false;
@@ -114,9 +132,9 @@ const shutdown = (signal) => {
   if (shuttingDown) return;
   shuttingDown = true;
 
-  console.log(`Received ${signal}; shutting down gracefully.`);
+  logger.info({ signal }, 'Shutting down gracefully');
   const forceShutdown = setTimeout(() => {
-    console.error('Graceful shutdown timed out; forcing exit.');
+    logger.fatal('Graceful shutdown timed out; forcing exit');
     process.exit(1);
   }, 10_000);
   forceShutdown.unref();
@@ -127,7 +145,7 @@ const shutdown = (signal) => {
     try {
       await prisma.$disconnect();
     } catch (error) {
-      console.error('Failed to disconnect Prisma during shutdown:', error);
+      logger.error({ err: error }, 'Failed to disconnect Prisma during shutdown');
       process.exit(1);
     }
   });

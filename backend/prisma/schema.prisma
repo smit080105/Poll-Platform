@@ -7,12 +7,26 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum UserRole {
+  PARTICIPANT
+  ORGANIZER
+}
+
+enum PollType {
+  SINGLE_CHOICE
+}
+
+enum PollStatus {
+  DRAFT
+  ACTIVE
+}
+
 model User {
   id        String   @id @default(uuid())
   email     String   @unique
   password  String
   name      String
-  role      String   @default("PARTICIPANT")
+  role      UserRole @default(PARTICIPANT)
   createdAt DateTime @default(now())
   polls     Poll[]   @relation("CreatedPolls")
   votes     Vote[]
@@ -23,12 +37,12 @@ model Poll {
   shortId     String   @unique
   title       String
   description String   @default("")
-  type        String   @default("SINGLE_CHOICE")
+  type        PollType @default(SINGLE_CHOICE)
   startDate   DateTime
   endDate     DateTime
   maxVotes    Int?
   isPublic    Boolean  @default(true)
-  status      String   @default("DRAFT")
+  status      PollStatus @default(DRAFT)
   createdAt   DateTime @default(now())
   organizer   User     @relation("CreatedPolls", fields: [organizerId], references: [id])
   organizerId String
@@ -42,6 +56,8 @@ model Option {
   poll   Poll   @relation(fields: [pollId], references: [id])
   pollId String
   votes  Vote[]
+
+  @@unique([id, pollId])
 }
 
 model Vote {
@@ -50,7 +66,7 @@ model Vote {
   userId    String
   poll      Poll     @relation(fields: [pollId], references: [id])
   pollId    String
-  option    Option   @relation(fields: [optionId], references: [id])
+  option    Option   @relation(fields: [optionId, pollId], references: [id, pollId])
   optionId  String
   createdAt DateTime @default(now())
 

@@ -72,6 +72,12 @@ describe('validatePollInput', () => {
     }
   });
 
+  it('rejects unsupported poll types', () => {
+    expect(validatePollInput({ ...validPoll, type: 'MULTIPLE_CHOICE' })).toContain(
+      'Poll type must be SINGLE_CHOICE.'
+    );
+  });
+
   it('requires at least two poll options', () => {
     expect(validatePollInput({ ...validPoll, options: ['Only one'] })).toContain(
       'At least 2 options are required.'

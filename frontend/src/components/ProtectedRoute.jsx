@@ -24,7 +24,7 @@ function ProtectedRoute({ children, roles }) {
     return (
       <div className="empty-state">
         <div className="empty-state-icon"><Lock size={40} strokeWidth={1.5} /></div>
-        <h3>You don't have access to this page</h3>
+        <h3>You don&apos;t have access to this page</h3>
         <p>This page is only available to {allowed} accounts.</p>
         <Link to={homePath} className="btn btn-primary" style={{ marginTop: '16px' }}>
           Go to your home
