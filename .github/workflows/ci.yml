@@ -101,6 +101,7 @@ jobs:
 
       - name: Start API and run integration tests
         env:
+          DATABASE_URL: postgresql://pollwave:pollwave-ci-password@localhost:5432/pollwave?schema=public
           JWT_SECRET: pollwave-ci-jwt-secret
           PORT: 5000
           CLIENT_URL: http://localhost:5173
