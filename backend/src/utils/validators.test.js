@@ -72,6 +72,14 @@ describe('validatePollInput', () => {
     }
   });
 
+  it('rejects non-numeric vote limit types', () => {
+    for (const maxVotes of [true, false, [], [2], {}]) {
+      expect(validatePollInput({ ...validPoll, maxVotes })).toContain(
+        'Max votes must be a positive whole number.'
+      );
+    }
+  });
+
   it('rejects unsupported poll types', () => {
     expect(validatePollInput({ ...validPoll, type: 'MULTIPLE_CHOICE' })).toContain(
       'Poll type must be SINGLE_CHOICE.'

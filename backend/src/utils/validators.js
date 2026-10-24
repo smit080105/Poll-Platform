@@ -22,7 +22,11 @@ export const validatePollInput = (data) => {
   }
   if (data.maxVotes !== undefined && data.maxVotes !== null && data.maxVotes !== '') {
     const maxVotesNum = Number(data.maxVotes);
-    if (!Number.isInteger(maxVotesNum) || maxVotesNum < 1) {
+    if (
+      (typeof data.maxVotes !== 'number' && typeof data.maxVotes !== 'string') ||
+      !Number.isInteger(maxVotesNum) ||
+      maxVotesNum < 1
+    ) {
       errors.push('Max votes must be a positive whole number.');
     }
   }
