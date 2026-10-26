@@ -2,14 +2,13 @@
 
 # 🗳️ PollWave
 
-**Community polls and elections.**
+**Private-by-design polls and elections for communities.**
 
-PollWave is built for housing societies, student unions, and clubs running real decisions: too small for enterprise e-voting, too important for a WhatsApp poll. Account-based voting limits each participant to one vote per poll.
+PollWave is built for housing societies, student unions, and clubs running real decisions. It separates account-based participation records from option-only ballots, and keeps turnout and results hidden until voting closes.
 
-Real-time results, protected organizer registration, and account-based duplicate-vote prevention — built with React, Express, Prisma, and Socket.io.
+Organizers create shareable polls with protected registration, while database-enforced participation limits each account to one ballot per poll.
 
-Create polls, share them instantly with a link, and watch votes pour in live.  
-Database-enforced one-person-one-vote limits built right in.
+PollWave is designed to reduce direct identity-to-choice exposure in the application database. It is not a cryptographic voting system or a guarantee of anonymity against timing analysis, infrastructure logs, or a compromised server.
 
 </div>
 
@@ -18,8 +17,9 @@ Database-enforced one-person-one-vote limits built right in.
 ## ✨ Features
 
 - 🔗 **Instant Shareable Links** — Every poll gets a unique short URL
-- 🛡️ **One Vote per Account** — Enforced by a database uniqueness constraint
-- ⚡ **Live Results** — Socket.io powered real-time vote updates
+- 🛡️ **Separate Participation and Ballots** — A voter account record contains no option choice; the ballot contains no voter ID
+- 🔒 **Results After Poll Close** — Turnout and option totals are withheld while voting is open to reduce inference of individual choices
+- ✅ **One Ballot per Account** — Enforced by a database uniqueness constraint on poll participation
 - 👥 **Protected Organizer Access** — Organizer registration requires a configured signup code
 - 🔒 **Private Poll Links** — Published private polls require a signed-in account; drafts are organizer-only
 - 📊 **Rich Dashboard** — Stats, poll management, and analytics
@@ -33,7 +33,7 @@ Database-enforced one-person-one-vote limits built right in.
 | Layer      | Technology                                 |
 |------------|--------------------------------------------|
 | Frontend   | React 18, Vite, Lucide Icons               |
-| Backend    | Node.js, Express, Socket.io                |
+| Backend    | Node.js, Express                            |
 | Database   | Prisma ORM + PostgreSQL                    |
 | Auth       | JWT (JSON Web Tokens) + bcrypt             |
 | Styling    | Custom CSS with design tokens              |
@@ -113,6 +113,8 @@ npm run dev
 The frontend will be available at **http://localhost:5173** and the API at **http://localhost:5000**.
 To create organizer accounts, set `ORGANIZER_SIGNUP_CODE` in `backend/.env`; leave it empty to disable organizer registration. The development Docker Compose stack uses `pollwave-dev-organizer` by default.
 
+For existing databases, use `npm run db:migrate` to apply the migration that separates account participation from option-only ballots. The migration intentionally discards the old user-to-option mapping; after upgrade, you can still enforce one ballot per account and calculate aggregate results, but cannot retrieve which historical option a given account selected.
+
 ### Docker Deployment
 
 ```bash
@@ -126,7 +128,7 @@ docker compose -f docker/docker-compose.dev.yml up --build
 ```
 
 Production app will be available at **http://localhost:3000**. Set a strong `ORGANIZER_SIGNUP_CODE` in `docker/.env` to enable organizer registration; organizer registrations stay disabled if it is empty.
-Set `CLIENT_URL` in `docker/.env` to the public frontend origin when deploying outside localhost. The frontend uses same-origin `/api` and `/socket.io` routes through Nginx.
+Set `CLIENT_URL` in `docker/.env` to the public frontend origin when deploying outside localhost. The frontend uses same-origin `/api` routes through Nginx.
 
 ### Database migrations and existing deployments
 
@@ -186,7 +188,7 @@ Run frontend linting with `npm run lint`. Backend integration tests require a mi
 | GET    | `/api/polls/s/:shortId`   | Conditional | Get a published poll by short ID; private polls require sign-in |
 | POST   | `/api/polls/:id/publish`  | Organizer| Publish a draft poll    |
 | POST   | `/api/votes/:pollId`      | Bearer   | Submit a vote           |
-| GET    | `/api/votes/:pollId/results` | Conditional | Get results; private polls require sign-in, drafts are organizer-only |
+| GET    | `/api/votes/:pollId/results` | Conditional | Get aggregate results after a poll closes; private polls require sign-in, drafts are organizer-only |
 | GET    | `/api/health`             | —        | Health check            |
 
 ---

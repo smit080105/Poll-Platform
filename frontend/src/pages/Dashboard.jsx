@@ -55,7 +55,7 @@ function Dashboard() {
   };
 
   // Calculate stats
-  const totalVotes = polls.reduce((sum, p) => sum + (p._count?.votes || 0), 0);
+  const totalVotes = polls.reduce((sum, p) => sum + (p._count?.ballots || 0), 0);
   const activePolls = polls.filter(p => {
     if (p.status !== 'ACTIVE') return false;
     const now = new Date();
@@ -93,7 +93,7 @@ function Dashboard() {
         <div className="ledger-divider" />
         <div className="ledger-item">
           <span className="ledger-value">{totalVotes}</span>
-          <span className="ledger-label">Votes counted</span>
+          <span className="ledger-label">Ballots revealed</span>
         </div>
         <div className="ledger-divider" />
         <div className="ledger-item">
@@ -113,7 +113,7 @@ function Dashboard() {
         <div className="empty-state">
           <div className="empty-state-icon"><BarChart3 size={40} strokeWidth={1.5} /></div>
           <h3>No polls yet</h3>
-          <p>Create your first poll and start collecting responses in real-time.</p>
+          <p>Create a poll and collect private ballots from your community.</p>
           <Link to="/create-poll" className="btn btn-primary" style={{ marginTop: '16px' }}>
             <PlusCircle size={18} /> Create Your First Poll
           </Link>

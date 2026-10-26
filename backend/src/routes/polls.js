@@ -60,12 +60,19 @@ router.get('/', authenticate, roleGuard('ORGANIZER'), async (req, res) => {
       where: { organizerId: req.user.id },
       include: {
         options: true,
-        _count: { select: { votes: true } }
+        _count: { select: { ballots: true } }
       },
       orderBy: { createdAt: 'desc' }
     });
 
-    res.json(polls);
+    const now = new Date();
+    res.json(polls.map((poll) => {
+      if (poll.status === 'ACTIVE' && now <= new Date(poll.endDate)) {
+        const { _count, ...pollWithoutCount } = poll;
+        return pollWithoutCount;
+      }
+      return poll;
+    }));
   } catch (error) {
     logError(req, error, 'List polls request failed');
     res.status(500).json({ error: 'Internal server error.' });
@@ -85,8 +92,7 @@ router.get('/public', async (req, res) => {
       },
       include: {
         options: true,
-        organizer: { select: { name: true } },
-        _count: { select: { votes: true } }
+        organizer: { select: { name: true } }
       },
       orderBy: { createdAt: 'desc' }
     });
@@ -106,11 +112,11 @@ router.get('/s/:shortId', optionalAuthenticate, async (req, res) => {
       include: {
         options: {
           include: {
-            _count: { select: { votes: true } }
+            _count: { select: { ballots: true } }
           }
         },
         organizer: { select: { name: true } },
-        _count: { select: { votes: true } }
+        _count: { select: { ballots: true } }
       }
     });
 
@@ -122,6 +128,11 @@ router.get('/s/:shortId', optionalAuthenticate, async (req, res) => {
         return res.status(401).json({ error: 'Sign in to view this private poll.' });
       }
       return res.status(404).json({ error: 'Poll not found.' });
+    }
+
+    if (poll.status === 'ACTIVE' && new Date() <= new Date(poll.endDate)) {
+      poll.options = poll.options.map(({ _count, ...option }) => option);
+      delete poll._count;
     }
 
     res.json(poll);
@@ -139,11 +150,11 @@ router.get('/:id', authenticate, async (req, res) => {
       include: {
         options: {
           include: {
-            _count: { select: { votes: true } }
+            _count: { select: { ballots: true } }
           }
         },
         organizer: { select: { name: true } },
-        _count: { select: { votes: true } }
+        _count: { select: { ballots: true } }
       }
     });
 
@@ -152,6 +163,11 @@ router.get('/:id', authenticate, async (req, res) => {
     }
     if (poll.organizerId !== req.user.id) {
       return res.status(403).json({ error: 'Not authorized.' });
+    }
+
+    if (poll.status === 'ACTIVE' && new Date() <= new Date(poll.endDate)) {
+      poll.options = poll.options.map(({ _count, ...option }) => option);
+      delete poll._count;
     }
 
     res.json(poll);
@@ -278,9 +294,10 @@ router.delete('/:id', authenticate, roleGuard('ORGANIZER'), async (req, res) => 
       return res.status(403).json({ error: 'Not authorized.' });
     }
 
-    // All-or-nothing: votes → options → poll
+    // All-or-nothing: ballots and participation → options → poll
     await prisma.$transaction([
-      prisma.vote.deleteMany({ where: { pollId: req.params.id } }),
+      prisma.ballot.deleteMany({ where: { pollId: req.params.id } }),
+      prisma.participation.deleteMany({ where: { pollId: req.params.id } }),
       prisma.option.deleteMany({ where: { pollId: req.params.id } }),
       prisma.poll.delete({ where: { id: req.params.id } })
     ]);

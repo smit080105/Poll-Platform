@@ -1,8 +1,7 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
 import api from '../services/api.js';
-import { io } from 'socket.io-client';
 import LoadingSpinner from '../components/LoadingSpinner.jsx';
 import { CheckCircle2, Clock, AlertCircle, LogIn, Check, ShieldCheck } from 'lucide-react';
 
@@ -13,7 +12,6 @@ function PollView() {
   const [poll, setPoll] = useState(null);
   const [selectedOption, setSelectedOption] = useState(null);
   const [hasVoted, setHasVoted] = useState(false);
-  const [votedOptionId, setVotedOptionId] = useState(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
@@ -21,6 +19,7 @@ function PollView() {
   const [success, setSuccess] = useState('');
   const [timeLeft, setTimeLeft] = useState('');
   const [showConfirm, setShowConfirm] = useState(false);
+  const refreshedClosedPollId = useRef(null);
 
   // Fetch poll data
   const fetchPoll = useCallback(async () => {
@@ -35,7 +34,6 @@ function PollView() {
         try {
           const voteCheck = await api.get(`/votes/${res.data.id}/check`);
           setHasVoted(voteCheck.data.hasVoted);
-          setVotedOptionId(voteCheck.data.votedOptionId);
         } catch {
           // Not logged in or error
         }
@@ -51,37 +49,6 @@ function PollView() {
   useEffect(() => {
     fetchPoll();
   }, [fetchPoll]);
-
-  // Real-time updates via Socket.io
-  const currentPollId = poll?.id;
-
-  useEffect(() => {
-    if (!currentPollId) return;
-
-    const socket = io(import.meta.env.VITE_API_URL || window.location.origin, {
-      transports: ['websocket', 'polling'],
-      auth: { token: localStorage.getItem('pollwave_token') }
-    });
-    socket.emit('join-poll', currentPollId);
-
-    socket.on('vote-update', (data) => {
-      if (data.pollId === currentPollId) {
-        setPoll(prev => ({
-          ...prev,
-          options: prev.options.map(opt => {
-            const updated = data.options.find(o => o.id === opt.id);
-            return updated ? { ...opt, _count: { votes: updated.votes } } : opt;
-          }),
-          _count: { votes: data.totalVotes }
-        }));
-      }
-    });
-
-    return () => {
-      socket.emit('leave-poll', currentPollId);
-      socket.disconnect();
-    };
-  }, [currentPollId]);
 
   const formatDuration = (ms) => {
     const days = Math.floor(ms / (1000 * 60 * 60 * 24));
@@ -108,6 +75,10 @@ function PollView() {
         setTimeLeft(`Starts in ${formatDuration(diff)}`);
       } else if (now > end) {
         setTimeLeft('Poll has ended');
+        if (poll.status === 'ACTIVE' && refreshedClosedPollId.current !== poll.id) {
+          refreshedClosedPollId.current = poll.id;
+          fetchPoll();
+        }
       } else {
         const diff = end - now;
         setTimeLeft(`${formatDuration(diff)} remaining`);
@@ -117,7 +88,7 @@ function PollView() {
     updateTimer();
     const interval = setInterval(updateTimer, 1000);
     return () => clearInterval(interval);
-  }, [poll]);
+  }, [poll, fetchPoll]);
 
   const handleVoteClick = () => {
     if (!selectedOption || !user) return;
@@ -132,8 +103,7 @@ function PollView() {
     try {
       await api.post(`/votes/${poll.id}`, { optionId: selectedOption });
       setHasVoted(true);
-      setVotedOptionId(selectedOption);
-      setSuccess('Your vote has been recorded!');
+      setSuccess('Your participation is recorded separately from your ballot choice.');
     } catch (err) {
       setError(err.response?.data?.error || 'Failed to submit vote.');
     } finally {
@@ -150,7 +120,7 @@ function PollView() {
     return 'active';
   };
 
-  const totalVotes = poll?._count?.votes || 0;
+  const totalVotes = poll?._count?.ballots || 0;
 
   if (loading) return <LoadingSpinner text="Loading poll..." />;
 
@@ -232,13 +202,16 @@ function PollView() {
         {hasVoted && (
           <div className="voted-message">
             <div className="voted-message-icon"><Check size={28} strokeWidth={2.5} /></div>
-            <h3>You&apos;ve already voted!</h3>
-            <p>Your response has been recorded. Results are shown below.</p>
+            <h3>You&apos;ve already participated</h3>
+            <p>
+              Your account is recorded as having participated; the ballot stores
+              no voter identifier. Results appear when the poll closes.
+            </p>
           </div>
         )}
 
         {/* Success message */}
-        {success && !hasVoted && (
+        {success && (
           <div className="alert alert-success" style={{ marginBottom: '24px' }}>
             <CheckCircle2 size={16} /> {success}
           </div>
@@ -254,25 +227,23 @@ function PollView() {
         {/* Vote Options */}
         <div className="vote-options">
           {poll.options.map(option => {
-            const votes = option._count?.votes || 0;
+            const votes = option._count?.ballots || 0;
             const percentage = totalVotes > 0 ? Math.round((votes / totalVotes) * 100) : 0;
             const isSelected = selectedOption === option.id;
-            const isVotedOption = votedOptionId === option.id;
-
             return (
               <div
                 key={option.id}
-                className={`vote-option ${isSelected ? 'selected' : ''} ${hasVoted ? 'voted' : ''} ${isVotedOption ? 'selected-vote' : ''}`}
+                className={`vote-option ${isSelected ? 'selected' : ''} ${hasVoted ? 'voted' : ''}`}
                 onClick={() => {
                   if (canVote) setSelectedOption(option.id);
                 }}
               >
                 <div className="vote-radio" />
                 <span className="vote-option-text">{option.text}</span>
-                {(hasVoted || status === 'ended') && (
+                {status === 'ended' && (
                   <span className="vote-option-count">{percentage}% ({votes})</span>
                 )}
-                {(hasVoted || status === 'ended') && (
+                {status === 'ended' && (
                   <div className="vote-bar" style={{ width: `${percentage}%` }} />
                 )}
               </div>
@@ -298,15 +269,19 @@ function PollView() {
               )}
             </button>
             <p className="vote-trust-note">
-              <ShieldCheck size={13} /> One vote per person — verified and locked once cast
+              <ShieldCheck size={13} /> One vote per account. The stored ballot has no voter ID; this is not cryptographic anonymity.
             </p>
           </div>
         )}
 
         {/* Total votes */}
-        <p className="vote-total">
-          {totalVotes} vote{totalVotes !== 1 ? 's' : ''} cast
-        </p>
+        {status === 'ended' ? (
+          <p className="vote-total">
+            {totalVotes} ballot{totalVotes !== 1 ? 's' : ''} cast
+          </p>
+        ) : (
+          <p className="vote-total">Turnout and results are revealed when the poll closes.</p>
+        )}
       </div>
     </div>
   );

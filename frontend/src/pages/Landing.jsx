@@ -25,8 +25,8 @@ function Landing() {
 
         <p className="landing-subtitle">
           Built for housing societies, student unions, and clubs running real
-          decisions — too small for enterprise e-voting, too important for a
-          WhatsApp poll. Each account can cast one vote per poll.
+          decisions — with account-based eligibility, separated ballots, and
+          results held until voting closes.
         </p>
 
         <div className="landing-actions">
@@ -55,10 +55,10 @@ function Landing() {
           <div className="feature-icon">
             <Shield size={22} />
           </div>
-          <h3>One Vote per Account</h3>
+          <h3>Private-by-Design Ballots</h3>
           <p>
-            A database uniqueness constraint prevents the same account from
-            submitting multiple votes in a poll.
+            Account records prevent repeat participation, while ballot records
+            store the selected option without a voter identifier.
           </p>
         </div>
 
@@ -66,10 +66,10 @@ function Landing() {
           <div className="feature-icon">
             <BarChart3 size={22} />
           </div>
-          <h3>Live Results</h3>
+          <h3>Results After Close</h3>
           <p>
-            Watch votes flow in real-time with animated charts. Socket-powered
-            updates mean zero page refreshes — results update as they happen.
+            Turnout and option totals stay hidden during voting, helping prevent
+            participants&apos; choices from being inferred from changing totals.
           </p>
         </div>
       </section>

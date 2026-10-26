@@ -2,7 +2,7 @@
   "name": "poll-platform",
   "version": "1.0.0",
   "private": true,
-  "description": "PollWave — Real-Time Poll & Survey Intelligence Platform",
+  "description": "PollWave — Private-by-Design Community Polls and Elections",
   "scripts": {
     "lint": "eslint frontend/src",
     "dev": "npm run dev:backend & npm run dev:frontend",
@@ -22,8 +22,6 @@
   },
   "keywords": [
     "polling",
-    "real-time",
-    "socket.io",
     "react",
     "express",
     "prisma"

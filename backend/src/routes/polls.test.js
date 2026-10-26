@@ -29,11 +29,12 @@ const makePoll = (overrides = {}) => ({
   title: 'Community poll',
   description: '',
   status: 'ACTIVE',
+  endDate: new Date(Date.now() + 60_000),
   isPublic: true,
   organizerId: 'organizer-1',
-  options: [],
+  options: [{ id: 'option-1', _count: { ballots: 8 } }],
   organizer: { name: 'Organizer' },
-  _count: { votes: 0 },
+  _count: { ballots: 0 },
   ...overrides
 });
 
@@ -50,6 +51,8 @@ describe('shareable poll access', () => {
 
     expect(response.status).toBe(200);
     expect(response.body.id).toBe('poll-1');
+    expect(response.body).not.toHaveProperty('_count');
+    expect(response.body.options[0]).not.toHaveProperty('_count');
   });
 
   it('requires sign-in for a published private poll', async () => {

@@ -57,11 +57,25 @@ describe('database integrity constraints', () => {
         ]
       });
 
-      await expect(prisma.vote.create({
-        data: { userId, pollId: firstPollId, optionId: secondOptionId }
+      const participation = await prisma.participation.create({
+        data: { userId, pollId: firstPollId }
+      });
+      const ballot = await prisma.ballot.create({
+        data: { pollId: firstPollId, optionId: firstOptionId }
+      });
+
+      expect(participation).not.toHaveProperty('optionId');
+      expect(ballot).not.toHaveProperty('userId');
+
+      await expect(prisma.ballot.create({
+        data: { pollId: firstPollId, optionId: secondOptionId }
       })).rejects.toMatchObject({ code: 'P2003' });
+      await expect(prisma.participation.create({
+        data: { userId, pollId: firstPollId }
+      })).rejects.toMatchObject({ code: 'P2002' });
     } finally {
-      await prisma.vote.deleteMany({ where: { userId } });
+      await prisma.ballot.deleteMany({ where: { pollId: { in: [firstPollId, secondPollId] } } });
+      await prisma.participation.deleteMany({ where: { userId } });
       await prisma.option.deleteMany({ where: { pollId: { in: [firstPollId, secondPollId] } } });
       await prisma.poll.deleteMany({ where: { id: { in: [firstPollId, secondPollId] } } });
       await prisma.user.deleteMany({ where: { id: userId } });
