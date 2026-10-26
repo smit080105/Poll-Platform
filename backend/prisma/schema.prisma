@@ -22,54 +22,61 @@ enum PollStatus {
 }
 
 model User {
-  id        String   @id @default(uuid())
-  email     String   @unique
-  password  String
-  name      String
-  role      UserRole @default(PARTICIPANT)
-  createdAt DateTime @default(now())
-  polls     Poll[]   @relation("CreatedPolls")
-  votes     Vote[]
+  id             String          @id @default(uuid())
+  email          String          @unique
+  password       String
+  name           String
+  role           UserRole        @default(PARTICIPANT)
+  createdAt      DateTime        @default(now())
+  polls          Poll[]          @relation("CreatedPolls")
+  participations Participation[]
 }
 
 model Poll {
-  id          String   @id @default(uuid())
-  shortId     String   @unique
-  title       String
-  description String   @default("")
-  type        PollType @default(SINGLE_CHOICE)
-  startDate   DateTime
-  endDate     DateTime
-  maxVotes    Int?
-  isPublic    Boolean  @default(true)
-  status      PollStatus @default(DRAFT)
-  createdAt   DateTime @default(now())
-  organizer   User     @relation("CreatedPolls", fields: [organizerId], references: [id])
-  organizerId String
-  options     Option[]
-  votes       Vote[]
+  id             String          @id @default(uuid())
+  shortId        String          @unique
+  title          String
+  description    String          @default("")
+  type           PollType        @default(SINGLE_CHOICE)
+  startDate      DateTime
+  endDate        DateTime
+  maxVotes       Int?
+  isPublic       Boolean         @default(true)
+  status         PollStatus      @default(DRAFT)
+  createdAt      DateTime        @default(now())
+  organizer      User            @relation("CreatedPolls", fields: [organizerId], references: [id])
+  organizerId    String
+  options        Option[]
+  participations Participation[]
+  ballots        Ballot[]
 }
 
 model Option {
-  id     String @id @default(uuid())
-  text   String
-  poll   Poll   @relation(fields: [pollId], references: [id])
-  pollId String
-  votes  Vote[]
+  id      String   @id @default(uuid())
+  text    String
+  poll    Poll     @relation(fields: [pollId], references: [id])
+  pollId  String
+  ballots Ballot[]
 
   @@unique([id, pollId])
 }
 
-model Vote {
-  id        String   @id @default(uuid())
-  user      User     @relation(fields: [userId], references: [id])
-  userId    String
-  poll      Poll     @relation(fields: [pollId], references: [id])
-  pollId    String
-  option    Option   @relation(fields: [optionId, pollId], references: [id, pollId])
-  optionId  String
-  createdAt DateTime @default(now())
+model Participation {
+  id     String @id @default(uuid())
+  user   User   @relation(fields: [userId], references: [id])
+  userId String
+  poll   Poll   @relation(fields: [pollId], references: [id])
+  pollId String
 
   @@unique([userId, pollId])
+}
+
+model Ballot {
+  id       String @id @default(uuid())
+  poll     Poll   @relation(fields: [pollId], references: [id])
+  pollId   String
+  option   Option @relation(fields: [optionId, pollId], references: [id, pollId])
+  optionId String
+
   @@index([pollId])
 }

@@ -7,7 +7,7 @@ import { logError } from '../utils/logger.js';
 const router = Router();
 const prisma = new PrismaClient();
 
-// Submit vote — double-layer one-person-one-vote protection
+// Record account eligibility separately from the option-only ballot.
 router.post('/:pollId', authenticate, async (req, res) => {
   try {
     const { pollId } = req.params;
@@ -42,61 +42,43 @@ router.post('/:pollId', authenticate, async (req, res) => {
       return res.status(400).json({ error: 'Invalid option for this poll.' });
     }
 
-    // 4. Application-level check: has user already voted?
-    const existingVote = await prisma.vote.findUnique({
-      where: { userId_pollId: { userId, pollId } }
-    });
-    if (existingVote) {
-      return res.status(409).json({ error: 'You have already voted in this poll.' });
-    }
-
-    // 5 + 6. Check the vote cap and create the vote atomically.
-    // Locking the poll row makes concurrent votes on the same poll run one at a
-    // time, so two simultaneous votes can't both slip under the cap.
-    // (DB constraint @@unique([userId, pollId]) remains the duplicate-vote layer.)
-    let vote;
+    // Locking the poll serializes submissions so duplicate checks and vote caps
+    // remain correct without storing a voter identifier on the ballot.
     try {
-      vote = await prisma.$transaction(async (tx) => {
+      await prisma.$transaction(async (tx) => {
         await tx.$queryRaw`SELECT id FROM "Poll" WHERE id = ${pollId} FOR UPDATE`;
 
-        if (poll.maxVotes) {
-          const voteCount = await tx.vote.count({ where: { pollId } });
+        const existingParticipation = await tx.participation.findUnique({
+          where: { userId_pollId: { userId, pollId } }
+        });
+        if (existingParticipation) {
+          throw new Error('ALREADY_VOTED');
+        }
+
+        if (poll.maxVotes !== null && poll.maxVotes !== undefined) {
+          const voteCount = await tx.ballot.count({ where: { pollId } });
           if (voteCount >= poll.maxVotes) {
             throw new Error('MAX_VOTES_REACHED');
           }
         }
 
-        return tx.vote.create({ data: { userId, pollId, optionId } });
+        await tx.participation.create({ data: { userId, pollId } });
+        await tx.ballot.create({ data: { pollId, optionId } });
       });
     } catch (err) {
+      if (err.message === 'ALREADY_VOTED' || err.code === 'P2002') {
+        return res.status(409).json({ error: 'You have already voted in this poll.' });
+      }
       if (err.message === 'MAX_VOTES_REACHED') {
         return res.status(400).json({ error: 'This poll has reached its maximum number of votes.' });
       }
-      throw err; // anything else, including P2002, goes to the outer catch below
+      throw err;
     }
 
-    // 7. Get updated counts for real-time broadcast
-    const updatedOptions = await prisma.option.findMany({
-      where: { pollId },
-      include: { _count: { select: { votes: true } } }
-    });
-    const totalVotes = await prisma.vote.count({ where: { pollId } });
-
-    // 8. Broadcast via Socket.io to all clients watching this poll
-    const io = req.app.get('io');
-    io.to(`poll:${pollId}`).emit('vote-update', {
-      pollId,
-      options: updatedOptions.map(opt => ({
-        id: opt.id,
-        text: opt.text,
-        votes: opt._count.votes
-      })),
-      totalVotes
-    });
-
+    // Do not publish per-option updates while voting is open: live tallies can
+    // reveal an individual choice by comparing counts before and after a vote.
     res.status(201).json({
-      message: 'Vote submitted successfully!',
-      vote: { id: vote.id, pollId, optionId }
+      message: 'Your ballot was recorded separately from your account.'
     });
 
   } catch (error) {
@@ -116,12 +98,7 @@ router.get('/:pollId/results', optionalAuthenticate, async (req, res) => {
 
     const poll = await prisma.poll.findUnique({
       where: { id: pollId },
-      include: {
-        options: {
-          include: { _count: { select: { votes: true } } }
-        },
-        _count: { select: { votes: true } }
-      }
+      include: { options: true }
     });
 
     if (!poll) {
@@ -134,16 +111,28 @@ router.get('/:pollId/results', optionalAuthenticate, async (req, res) => {
       return res.status(404).json({ error: 'Poll not found.' });
     }
 
+    if (poll.status === 'ACTIVE' && new Date() <= new Date(poll.endDate)) {
+      return res.status(409).json({ error: 'Results are hidden until this poll closes.' });
+    }
+
+    const [options, totalVotes] = await Promise.all([
+      prisma.option.findMany({
+        where: { pollId },
+        include: { _count: { select: { ballots: true } } }
+      }),
+      prisma.ballot.count({ where: { pollId } })
+    ]);
+
     res.json({
       pollId: poll.id,
       title: poll.title,
-      totalVotes: poll._count.votes,
-      options: poll.options.map(opt => ({
+      totalVotes,
+      options: options.map(opt => ({
         id: opt.id,
         text: opt.text,
-        votes: opt._count.votes,
-        percentage: poll._count.votes > 0
-          ? Math.round((opt._count.votes / poll._count.votes) * 100)
+        votes: opt._count.ballots,
+        percentage: totalVotes > 0
+          ? Math.round((opt._count.ballots / totalVotes) * 100)
           : 0
       }))
     });
@@ -163,14 +152,11 @@ router.get('/:pollId/check', authenticate, async (req, res) => {
       return res.status(404).json({ error: 'Poll not found.' });
     }
 
-    const vote = await prisma.vote.findUnique({
+    const participation = await prisma.participation.findUnique({
       where: { userId_pollId: { userId: req.user.id, pollId } }
     });
 
-    res.json({
-      hasVoted: !!vote,
-      votedOptionId: vote?.optionId || null
-    });
+    res.json({ hasVoted: !!participation });
   } catch (error) {
     logError(req, error, 'Check vote request failed');
     res.status(500).json({ error: 'Internal server error.' });

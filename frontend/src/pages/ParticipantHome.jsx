@@ -102,7 +102,7 @@ function ParticipantHome() {
               )}
               <div className="poll-card-meta">
                 <span className="poll-card-meta-item">
-                  <Users size={14} /> {poll._count?.votes || 0} votes
+                  <Users size={14} /> Results after close
                 </span>
                 <span className="poll-card-meta-item">
                   <Clock size={14} /> Ends {formatDate(poll.endDate)}

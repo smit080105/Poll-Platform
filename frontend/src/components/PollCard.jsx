@@ -39,15 +39,15 @@ function PollCard({ poll, onDelete, onPublish }) {
     setTimeout(() => setIsCopied(false), 2000);
   };
 
-  const totalVotes = poll._count?.votes || 0;
+  const totalVotes = poll._count?.ballots;
 
   return (
     <div className="poll-card glass-card" onClick={() => navigate(`/results/${poll.id}`)}>
       <div className="poll-card-header">
         <h3 className="poll-card-title">{poll.title}</h3>
         <div className="poll-card-badges">
-          <span className="verified-badge" title="One vote per person, enforced">
-            <ShieldCheck size={12} /> Verified
+          <span className="verified-badge" title="One ballot per account; the choice is stored separately">
+            <ShieldCheck size={12} /> Private ballot
           </span>
           <span className={`status-badge ${getStatusClass()}`}>
             {getStatusLabel()}
@@ -60,7 +60,9 @@ function PollCard({ poll, onDelete, onPublish }) {
 
       <div className="poll-card-meta">
         <span className="poll-card-meta-item">
-          <Users size={14} /> {totalVotes} vote{totalVotes !== 1 ? 's' : ''}
+          <Users size={14} /> {totalVotes === undefined
+            ? 'Hidden until close'
+            : `${totalVotes} ballot${totalVotes !== 1 ? 's' : ''}`}
         </span>
         <span className="poll-card-meta-item">
           <CalendarDays size={14} /> Created {formatDate(poll.createdAt)}

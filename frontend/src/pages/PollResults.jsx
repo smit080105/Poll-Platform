@@ -1,31 +1,37 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import api from '../services/api.js';
-import { io } from 'socket.io-client';
 import LoadingSpinner from '../components/LoadingSpinner.jsx';
 import { ArrowLeft, Copy, Check, Share2, Download } from 'lucide-react';
 
 function PollResults() {
   const { pollId } = useParams();
   const navigate = useNavigate();
-  const currentPollId = poll?.id;
 
   const [poll, setPoll] = useState(null);
   const [results, setResults] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
   const [copied, setCopied] = useState(false);
   const [exporting, setExporting] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
+      setLoading(true);
+      setPoll(null);
+      setResults(null);
+      setError('');
       try {
-        const [pollRes, resultsRes] = await Promise.all([
-          api.get(`/polls/${pollId}`),
-          api.get(`/votes/${pollId}/results`)
-        ]);
+        const pollRes = await api.get(`/polls/${pollId}`);
         setPoll(pollRes.data);
-        setResults(resultsRes.data);
+        const resultsAvailable = pollRes.data.status !== 'ACTIVE'
+          || Date.now() > new Date(pollRes.data.endDate).getTime();
+        if (resultsAvailable) {
+          const resultsRes = await api.get(`/votes/${pollId}/results`);
+          setResults(resultsRes.data);
+        }
       } catch {
+        setError('Could not load this poll or its results. Please try again.');
         console.error('Failed to load poll results');
       } finally {
         setLoading(false);
@@ -33,41 +39,6 @@ function PollResults() {
     };
     fetchData();
   }, [pollId]);
-
-  // Real-time updates
-  useEffect(() => {
-    if (!currentPollId) return;
-
-    const socket = io(import.meta.env.VITE_API_URL || window.location.origin, {
-      transports: ['websocket', 'polling'],
-      auth: { token: localStorage.getItem('pollwave_token') }
-    });
-    socket.emit('join-poll', currentPollId);
-
-    socket.on('vote-update', (data) => {
-      if (data.pollId === currentPollId) {
-        setResults(prev => ({
-          ...prev,
-          totalVotes: data.totalVotes,
-          options: prev.options.map(opt => {
-            const updated = data.options.find(o => o.id === opt.id);
-            return updated ? {
-              ...opt,
-              votes: updated.votes,
-              percentage: data.totalVotes > 0
-                ? Math.round((updated.votes / data.totalVotes) * 100)
-                : 0
-            } : opt;
-          })
-        }));
-      }
-    });
-
-    return () => {
-      socket.emit('leave-poll', currentPollId);
-      socket.disconnect();
-    };
-  }, [currentPollId]);
 
   const copyLink = () => {
     if (!poll) return;
@@ -101,13 +72,35 @@ function PollResults() {
   };
 
   if (loading) return <LoadingSpinner text="Loading results..." />;
-  if (!poll || !results) {
+  if (error || !poll) {
     return (
       <div className="poll-results">
         <div className="empty-state">
           <div className="empty-state-icon">📊</div>
-          <h2>No Results Available</h2>
-          <p>The poll results are not available at this time.</p>
+          <h2>{error ? 'Could Not Load Results' : 'No Results Available'}</h2>
+          <p>{error || 'The poll results are not available at this time.'}</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!results) {
+    return (
+      <div className="poll-results">
+        <button className="btn btn-ghost" onClick={() => navigate('/dashboard')} style={{ marginBottom: '16px' }}>
+          <ArrowLeft size={18} /> Back to Dashboard
+        </button>
+        <div className="empty-state">
+          <div className="empty-state-icon">🔒</div>
+          <h2>Results are hidden until the poll closes</h2>
+          <p>
+            Hiding turnout and option totals during voting helps protect each
+            participant&apos;s choice from being inferred.
+          </p>
+          <p>
+            Poll closes {new Date(poll.endDate).toLocaleString()}. Refresh this
+            page after it closes to see the final tally.
+          </p>
         </div>
       </div>
     );
@@ -130,9 +123,9 @@ function PollResults() {
       {/* Results Card */}
       <div className="results-card glass-card-static">
         <div className="results-header">
-          <h2 style={{ fontSize: '1.1rem', fontWeight: 700 }}>Live Results</h2>
+          <h2 style={{ fontSize: '1.1rem', fontWeight: 700 }}>Election Results</h2>
           <div className="results-total">
-            <span>{results.totalVotes}</span> total votes
+            <span>{results.totalVotes}</span> total ballots
           </div>
         </div>
 
@@ -147,7 +140,7 @@ function PollResults() {
                 {option.text}
               </span>
               <div className="result-item-stats">
-                <span className="result-item-votes">{option.votes} vote{option.votes !== 1 ? 's' : ''}</span>
+                <span className="result-item-votes">{option.votes} ballot{option.votes !== 1 ? 's' : ''}</span>
                 <span className="result-item-percentage">{option.percentage}%</span>
               </div>
             </div>
