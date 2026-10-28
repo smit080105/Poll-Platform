@@ -10,7 +10,7 @@ Thank you for your interest in contributing to PollWave! 🎉
    ```bash
    git checkout -b feature/your-feature-name
    ```
-4. **Install dependencies**:
+4. **Install dependencies from the committed lockfiles**:
    ```bash
    npm run install:all
    ```
