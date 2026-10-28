@@ -34,5 +34,17 @@ export default [
       'react/react-in-jsx-scope': 'off',
       'react/prop-types': 'off'
     }
+  },
+  {
+    files: ['backend/src/**/*.js'],
+    languageOptions: {
+      ecmaVersion: 'latest',
+      sourceType: 'module',
+      globals: globals.node
+    },
+    rules: {
+      'no-undef': 'error',
+      'no-unused-vars': ['error', { ignoreRestSiblings: true }]
+    }
   }
 ];

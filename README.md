@@ -13,7 +13,6 @@ PollWave is designed to reduce direct identity-to-choice exposure in the applica
 </div>
 
 ---
-<!-- CI/CD pipeline verified working -->
 ## ✨ Features
 
 - 🔗 **Instant Shareable Links** — Every poll gets a unique short URL
@@ -91,7 +90,7 @@ poll-platform/
 
 ```bash
 # 1. Clone the repo
-git clone https://github.com/YOUR_USERNAME/poll-platform.git
+git clone https://github.com/smit080105/Poll-Platform.git
 cd poll-platform
 
 # 2. Install dependencies
@@ -170,8 +169,8 @@ Run from the project root:
 | `npm run docker:dev`      | Start development Docker stack       |
 | `npm run docker:down`     | Stop Docker stack                    |
 
-Run backend unit tests with `cd backend && npm run test:unit`. CI also validates the Prisma schema and builds both Docker images.
-Run frontend linting with `npm run lint`. Backend integration tests require a migrated PostgreSQL database and a running API; CI starts both before running `cd backend && npm run test:integration`.
+Run `npm test` for backend unit tests. Run `npm run lint` to lint both frontend and backend code. CI also validates the Prisma schema, runs backend integration tests against PostgreSQL, builds the frontend, and builds both Docker images.
+Backend integration tests require a migrated PostgreSQL database and a running API; run them with `cd backend && npm run test:integration`.
 
 ---
 
