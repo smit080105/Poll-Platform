@@ -93,7 +93,7 @@ poll-platform/
 git clone https://github.com/smit080105/Poll-Platform.git
 cd poll-platform
 
-# 2. Install dependencies
+# 2. Install all dependencies from the lockfiles
 npm run install:all
 
 # 3. Start the local PostgreSQL database
@@ -161,7 +161,8 @@ Run from the project root:
 | `npm run dev:frontend`    | Start frontend only (Vite)           |
 | `npm run dev:backend`     | Start backend only (nodemon)         |
 | `npm run build`           | Build the frontend for production    |
-| `npm run install:all`     | Install deps for frontend & backend  |
+| `npm run install:all`     | Install root, frontend, and backend dependencies from lockfiles |
+| `npm run clean`           | Remove generated dependencies and frontend build output |
 | `npm run db:push`         | Push Prisma schema to database       |
 | `npm run db:migrate`      | Apply checked-in Prisma migrations   |
 | `npm run db:studio`       | Open Prisma Studio                   |
