@@ -4,7 +4,10 @@
   "private": true,
   "description": "PollWave — Private-by-Design Community Polls and Elections",
   "scripts": {
-    "lint": "eslint frontend/src",
+    "lint": "npm run lint:frontend && npm run lint:backend",
+    "lint:frontend": "eslint frontend/src",
+    "lint:backend": "eslint backend/src",
+    "test": "npm run test:unit --prefix backend",
     "dev": "npm run dev:backend & npm run dev:frontend",
     "dev:frontend": "cd frontend && npm run dev",
     "dev:backend": "cd backend && npm run dev",

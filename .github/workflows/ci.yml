@@ -80,10 +80,18 @@ jobs:
         with:
           node-version: 20
           cache: npm
-          cache-dependency-path: backend/package-lock.json
+          cache-dependency-path: |
+            package-lock.json
+            backend/package-lock.json
 
       - name: Install dependencies
         run: npm ci
+
+      - name: Install repository tooling
+        run: npm ci --prefix ..
+
+      - name: Lint backend
+        run: npm run lint:backend --prefix ..
 
       - name: Apply database migrations
         env:

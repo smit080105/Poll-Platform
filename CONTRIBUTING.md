@@ -68,4 +68,4 @@ Use the [Bug Report template](.github/ISSUE_TEMPLATE/bug_report.md) and include:
 
 ## Need Help?
 
-Open a [Discussion](https://github.com/YOUR_USERNAME/poll-platform/discussions) or reach out to the maintainers.
+Open a [Discussion](https://github.com/smit080105/Poll-Platform/discussions) or reach out to the maintainers.
