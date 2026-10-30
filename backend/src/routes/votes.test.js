@@ -165,6 +165,25 @@ describe('poll results access', () => {
     expect(response.body).not.toHaveProperty('optionId');
   });
 
+  it.each([
+    ['missing body', undefined],
+    ['non-object body', 'invalid'],
+    ['missing option id', {}],
+    ['non-string option id', { optionId: 1 }],
+    ['empty option id', { optionId: '   ' }]
+  ])('rejects a vote with %s before looking up the poll', async (_label, body) => {
+    const requestBuilder = request(app)
+      .post('/api/votes/poll-1')
+      .set('Authorization', `Bearer ${participantToken}`);
+    const response = body === undefined
+      ? await requestBuilder
+      : await requestBuilder.send(body);
+
+    expect(response.status).toBe(400);
+    expect(response.body.error).toMatch(/vote data must be an object|valid option is required/i);
+    expect(findUnique).not.toHaveBeenCalled();
+  });
+
   it('rejects a second ballot for the same account without recording another choice', async () => {
     findUnique.mockResolvedValue(makePoll({
       endDate: new Date(Date.now() + 60_000),

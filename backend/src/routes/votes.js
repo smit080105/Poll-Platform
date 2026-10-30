@@ -11,8 +11,15 @@ const prisma = new PrismaClient();
 router.post('/:pollId', authenticate, async (req, res) => {
   try {
     const { pollId } = req.params;
-    const { optionId } = req.body;
+    const optionId = req.body?.optionId;
     const userId = req.user.id;
+
+    if (!req.body || typeof req.body !== 'object' || Array.isArray(req.body)) {
+      return res.status(400).json({ error: 'Vote data must be an object.' });
+    }
+    if (typeof optionId !== 'string' || optionId.trim().length === 0) {
+      return res.status(400).json({ error: 'A valid option is required.' });
+    }
 
     // 1. Check poll exists and is active
     const poll = await prisma.poll.findUnique({
