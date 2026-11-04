@@ -170,7 +170,7 @@ Run from the project root:
 | `npm run docker:dev`      | Start development Docker stack       |
 | `npm run docker:down`     | Stop Docker stack                    |
 
-Run `npm test` for backend unit tests. Run `npm run lint` to lint both frontend and backend code. CI also validates the Prisma schema, runs backend integration tests against PostgreSQL, builds the frontend, and builds both Docker images.
+Run `npm test` for backend unit tests. Run `npm run lint` to lint both frontend and backend code. CI also audits frontend and backend production dependencies, validates the Prisma schema, runs backend integration tests against PostgreSQL, builds the frontend, and builds both Docker images.
 Backend integration tests require a migrated PostgreSQL database and a running API; run them with `cd backend && npm run test:integration`.
 
 ---
