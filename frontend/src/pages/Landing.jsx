@@ -15,18 +15,18 @@ function Landing() {
       <section className="landing-hero">
         <div className="landing-badge">
           <span className="landing-badge-dot" />
-          Polling for your community
+          Private-by-design community voting
         </div>
 
         <h1 className="landing-title">
-          Not just another poll tool.<br />
-          <span className="gradient-text">Community decisions, made clear.</span>
+          Community decisions,<br />
+          <span className="gradient-text">made with confidence.</span>
         </h1>
 
         <p className="landing-subtitle">
-          Built for housing societies, student unions, and clubs running real
-          decisions — with account-based eligibility, separated ballots, and
-          results held until voting closes.
+          Run clear, trusted polls for your club, housing society, or student
+          union. Every eligible member gets one private ballot, and results stay
+          hidden until voting closes.
         </p>
 
         <div className="landing-actions">
@@ -41,8 +41,15 @@ function Landing() {
 
       {/* Features Section */}
       <section className="landing-features">
+        <div className="landing-features-heading">
+          <span className="landing-section-label">Built for better decisions</span>
+          <h2>A fairer way to hear every voice</h2>
+          <p>Simple to run, easy to share, and designed to protect each vote.</p>
+        </div>
+
         <div className="feature-card glass-card">
-          <div className="feature-icon">            <Zap size={22} />
+          <div className="feature-icon">
+            <Zap size={22} />
           </div>
           <h3>Instant Shareable Links</h3>
           <p>
@@ -62,7 +69,7 @@ function Landing() {
           </p>
         </div>
 
-          <div className="feature-card glass-card">
+        <div className="feature-card glass-card">
           <div className="feature-icon">
             <BarChart3 size={22} />
           </div>
