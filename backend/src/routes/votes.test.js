@@ -18,15 +18,13 @@ const tx = {
   ballot: { count: ballotCount, create: ballotCreate }
 };
 
-jest.unstable_mockModule('@prisma/client', () => ({
-  PrismaClient: class {
-    constructor() {
-      this.poll = { findUnique };
-      this.participation = { findUnique: participationFindUnique };
-      this.option = { findMany: optionFindMany };
-      this.ballot = { count: ballotCount };
-      this.$transaction = transaction;
-    }
+jest.unstable_mockModule('../database.js', () => ({
+  prisma: {
+    poll: { findUnique },
+    participation: { findUnique: participationFindUnique },
+    option: { findMany: optionFindMany },
+    ballot: { count: ballotCount },
+    $transaction: transaction
   }
 }));
 
