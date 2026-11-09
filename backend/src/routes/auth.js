@@ -3,13 +3,12 @@ import bcrypt from 'bcryptjs';
 import { createHash, timingSafeEqual } from 'node:crypto';
 import jwt from 'jsonwebtoken';
 import rateLimit from 'express-rate-limit';
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '../database.js';
 import { authenticate } from '../middleware/auth.js';
 import { validateEmail } from '../utils/validators.js';
 import { logError } from '../utils/logger.js';
 
 const router = Router();
-const prisma = new PrismaClient();
 
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes

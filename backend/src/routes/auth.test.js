@@ -5,12 +5,8 @@ import request from 'supertest';
 const findUnique = jest.fn();
 const create = jest.fn();
 
-jest.unstable_mockModule('@prisma/client', () => ({
-  PrismaClient: class {
-    constructor() {
-      this.user = { findUnique, create };
-    }
-  }
+jest.unstable_mockModule('../database.js', () => ({
+  prisma: { user: { findUnique, create } }
 }));
 
 const { default: authRoutes } = await import('./auth.js');

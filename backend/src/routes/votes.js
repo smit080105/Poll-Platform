@@ -1,11 +1,10 @@
 import { Router } from 'express';
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '../database.js';
 import { authenticate, optionalAuthenticate } from '../middleware/auth.js';
 import { canAccessPoll } from '../utils/pollAccess.js';
 import { logError } from '../utils/logger.js';
 
 const router = Router();
-const prisma = new PrismaClient();
 
 // Record account eligibility separately from the option-only ballot.
 router.post('/:pollId', authenticate, async (req, res) => {
