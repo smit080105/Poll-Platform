@@ -5,7 +5,7 @@ import { performance } from 'node:perf_hooks';
 import cors from 'cors';
 import helmet from 'helmet';
 import compression from 'compression';
-import { PrismaClient } from '@prisma/client';
+import { prisma } from './database.js';
 import authRoutes from './routes/auth.js';
 import pollRoutes from './routes/polls.js';
 import voteRoutes from './routes/votes.js';
@@ -21,7 +21,6 @@ if (!process.env.JWT_SECRET) {
 }
 
 const app = express();
-const prisma = new PrismaClient();
 
 // Required for correct client IPs behind Render's reverse proxy (affects rate limiting)
 app.set('trust proxy', 1);

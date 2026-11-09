@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '../database.js';
 import { authenticate, optionalAuthenticate } from '../middleware/auth.js';
 import { roleGuard } from '../middleware/roleGuard.js';
 import { generateShortId } from '../utils/generateId.js';
@@ -8,7 +8,6 @@ import { validatePollInput } from '../utils/validators.js';
 import { logError } from '../utils/logger.js';
 
 const router = Router();
-const prisma = new PrismaClient();
 
 // Create poll (Organizer only)
 router.post('/', authenticate, roleGuard('ORGANIZER'), async (req, res) => {

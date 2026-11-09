@@ -5,12 +5,8 @@ import request from 'supertest';
 
 const findUnique = jest.fn();
 
-jest.unstable_mockModule('@prisma/client', () => ({
-  PrismaClient: class {
-    constructor() {
-      this.poll = { findUnique };
-    }
-  }
+jest.unstable_mockModule('../database.js', () => ({
+  prisma: { poll: { findUnique } }
 }));
 
 const { default: pollRoutes } = await import('./polls.js');
