@@ -20,13 +20,22 @@ const authLimiter = rateLimit({
 
 const normalizeEmail = (value = '') => value.trim().toLowerCase();
 const normalizeName = (value = '') => value.trim();
+const normalizeOrganizerCode = (value = '') => typeof value === 'string' ? value.trim() : '';
 const matchesOrganizerCode = (providedCode, configuredCode) => {
-  if (typeof providedCode !== 'string') {
+  const normalizedProvidedCode = normalizeOrganizerCode(providedCode);
+  const normalizedConfiguredCode = normalizeOrganizerCode(configuredCode);
+
+  if (!normalizedProvidedCode || !normalizedConfiguredCode) {
     return false;
   }
 
-  const providedHash = createHash('sha256').update(providedCode).digest();
-  const configuredHash = createHash('sha256').update(configuredCode).digest();
+  const providedHash = createHash('sha256').update(normalizedProvidedCode, 'utf8').digest();
+  const configuredHash = createHash('sha256').update(normalizedConfiguredCode, 'utf8').digest();
+
+  if (providedHash.length !== configuredHash.length) {
+    return false;
+  }
+
   return timingSafeEqual(providedHash, configuredHash);
 };
 
