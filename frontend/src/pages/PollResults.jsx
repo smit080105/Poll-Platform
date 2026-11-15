@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import api from '../services/api.js';
 import LoadingSpinner from '../components/LoadingSpinner.jsx';
-import { ArrowLeft, Copy, Check, Share2, Download } from 'lucide-react';
+import { ArrowLeft, Copy, Check, Share2, Download, ShieldCheck, ShieldAlert } from 'lucide-react';
 
 function PollResults() {
   const { pollId } = useParams();
@@ -55,6 +55,10 @@ function PollResults() {
       ['Poll Title', poll.title],
       ['Poll ID', poll.id],
       ['Total Votes', results.totalVotes],
+      ...(results.quorum ? [
+        ['Minimum Ballots Required', results.quorum.required],
+        ['Quorum Met', results.quorum.met ? 'Yes' : 'No']
+      ] : []),
       ['Exported At', new Date().toISOString()],
       [],
       ['Option', 'Votes', 'Percentage'],
@@ -128,6 +132,23 @@ function PollResults() {
             <span>{results.totalVotes}</span> total ballots
           </div>
         </div>
+
+        {results.quorum && (
+          <div className={`quorum-status ${results.quorum.met ? 'quorum-met' : 'quorum-missed'}`}>
+            {results.quorum.met
+              ? <ShieldCheck size={20} aria-hidden="true" />
+              : <ShieldAlert size={20} aria-hidden="true" />}
+            <div>
+              <strong>{results.quorum.met ? 'Decision threshold met' : 'Decision threshold not met'}</strong>
+              <p>
+                {results.quorum.achieved} of {results.quorum.required} required ballots
+                {results.quorum.met
+                  ? ' were received.'
+                  : ` received; ${results.quorum.remaining} more needed.`}
+              </p>
+            </div>
+          </div>
+        )}
 
         {results.options.map(option => (
           <div

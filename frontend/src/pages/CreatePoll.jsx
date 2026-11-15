@@ -13,6 +13,7 @@ function CreatePoll() {
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [maxVotes, setMaxVotes] = useState('');
+  const [minimumVotes, setMinimumVotes] = useState('');
   const [isPublic, setIsPublic] = useState(true);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -71,6 +72,7 @@ function CreatePoll() {
         startDate: new Date(startDate).toISOString(),
         endDate: new Date(endDate).toISOString(),
         maxVotes: maxVotes ? parseInt(maxVotes) : null,
+        minimumVotes: minimumVotes ? parseInt(minimumVotes) : null,
         isPublic
       };
 
@@ -253,6 +255,26 @@ function CreatePoll() {
               min="1"
               style={{ maxWidth: '300px' }}
             />
+          </div>
+          <div className="form-group" style={{ marginTop: '20px' }}>
+            <label className="form-label" htmlFor="poll-minimum-votes">
+              Minimum Ballots for a Valid Decision (optional)
+            </label>
+            <input
+              id="poll-minimum-votes"
+              type="number"
+              className="form-input"
+              placeholder="Leave empty for no quorum"
+              value={minimumVotes}
+              onChange={(e) => setMinimumVotes(e.target.value)}
+              min="1"
+              max={maxVotes || undefined}
+              style={{ maxWidth: '300px' }}
+            />
+            <p className="form-hint">
+              The final result will show whether this participation threshold was met.
+              No live turnout is displayed while voting is open.
+            </p>
           </div>
         </div>
 

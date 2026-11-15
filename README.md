@@ -19,6 +19,7 @@ PollWave is designed to reduce direct identity-to-choice exposure in the applica
 - 🛡️ **Separate Participation and Ballots** — A voter account record contains no option choice; the ballot contains no voter ID
 - 🔒 **Results After Poll Close** — Turnout and option totals are withheld while voting is open to reduce inference of individual choices
 - ✅ **One Ballot per Account** — Enforced by a database uniqueness constraint on poll participation
+- 🎯 **Decision Quorum** — Optionally require a minimum number of ballots before a result is considered a valid decision; quorum status appears only after voting closes
 - 👥 **Protected Organizer Access** — Organizer registration requires a configured signup code
 - 🔒 **Private Poll Links** — Published private polls require a signed-in account; drafts are organizer-only
 - 📊 **Rich Dashboard** — Stats, poll management, and analytics
@@ -112,7 +113,8 @@ npm run dev
 The frontend will be available at **http://localhost:5173** and the API at **http://localhost:5000**.
 To create organizer accounts, set `ORGANIZER_SIGNUP_CODE` in `backend/.env`; leave it empty to disable organizer registration. The development Docker Compose stack uses `pollwave-dev-organizer` by default.
 
-For existing databases, use `npm run db:migrate` to apply the migration that separates account participation from option-only ballots. The migration intentionally discards the old user-to-option mapping; after upgrade, you can still enforce one ballot per account and calculate aggregate results, but cannot retrieve which historical option a given account selected.
+For existing databases, use `npm run db:migrate` to apply pending migrations. The migration that separates account participation from option-only ballots intentionally discards the old user-to-option mapping; after upgrade, you can still enforce one ballot per account and calculate aggregate results, but cannot retrieve which historical option a given account selected.
+The quorum migration adds an optional minimum-ballot threshold to polls. Existing polls keep quorum disabled; configure a threshold when creating a poll to include decision validity in the closed-poll results and CSV export.
 
 ### Docker Deployment
 

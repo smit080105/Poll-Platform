@@ -12,7 +12,9 @@ const router = Router();
 // Create poll (Organizer only)
 router.post('/', authenticate, roleGuard('ORGANIZER'), async (req, res) => {
   try {
-    const { title, description, type, options, startDate, endDate, maxVotes, isPublic } = req.body ?? {};
+    const {
+      title, description, type, options, startDate, endDate, maxVotes, minimumVotes, isPublic
+    } = req.body ?? {};
 
     const errors = validatePollInput(req.body);
     if (errors.length > 0) {
@@ -33,6 +35,9 @@ router.post('/', authenticate, roleGuard('ORGANIZER'), async (req, res) => {
         startDate: new Date(startDate),
         endDate: new Date(endDate),
         maxVotes: maxVotes === undefined || maxVotes === null || maxVotes === '' ? null : Number(maxVotes),
+        minimumVotes: minimumVotes === undefined || minimumVotes === null || minimumVotes === ''
+          ? null
+          : Number(minimumVotes),
         isPublic: isPublic !== undefined ? isPublic : true,
         status: 'DRAFT',
         organizerId: req.user.id,
@@ -195,7 +200,9 @@ router.put('/:id', authenticate, roleGuard('ORGANIZER'), async (req, res) => {
       return res.status(400).json({ errors: ['Poll data must be an object.'] });
     }
 
-    const { title, description, type, options, startDate, endDate, maxVotes, isPublic } = req.body;
+    const {
+      title, description, type, options, startDate, endDate, maxVotes, minimumVotes, isPublic
+    } = req.body;
     const errors = validatePollInput({
       title: title === undefined ? poll.title : title,
       description: description === undefined ? poll.description : description,
@@ -207,6 +214,7 @@ router.put('/:id', authenticate, roleGuard('ORGANIZER'), async (req, res) => {
       startDate: startDate === undefined ? poll.startDate : startDate,
       endDate: endDate === undefined ? poll.endDate : endDate,
       maxVotes: maxVotes === undefined ? poll.maxVotes : maxVotes,
+      minimumVotes: minimumVotes === undefined ? poll.minimumVotes : minimumVotes,
       isPublic: isPublic === undefined ? poll.isPublic : isPublic
     });
     if (errors.length > 0) {
@@ -223,6 +231,9 @@ router.put('/:id', authenticate, roleGuard('ORGANIZER'), async (req, res) => {
         ...(endDate && { endDate: new Date(endDate) }),
         ...(maxVotes !== undefined && {
           maxVotes: maxVotes === null || maxVotes === '' ? null : Number(maxVotes)
+        }),
+        ...(minimumVotes !== undefined && {
+          minimumVotes: minimumVotes === null || minimumVotes === '' ? null : Number(minimumVotes)
         }),
         ...(isPublic !== undefined && { isPublic }),
         ...(options && {
