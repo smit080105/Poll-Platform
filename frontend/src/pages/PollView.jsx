@@ -162,6 +162,15 @@ function PollView() {
           {poll.description && (
             <p className="poll-view-description">{poll.description}</p>
           )}
+          {poll.minimumVotes && (
+            <div className="quorum-info">
+              <ShieldCheck size={18} aria-hidden="true" />
+              <span>
+                This decision requires at least {poll.minimumVotes} ballots to meet
+                its participation threshold. Live turnout is not shown.
+              </span>
+            </div>
+          )}
           <span className={`poll-view-timer ${status}`}>
             <Clock size={14} /> {timeLeft}
           </span>

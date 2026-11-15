@@ -133,6 +133,14 @@ router.get('/:pollId/results', optionalAuthenticate, async (req, res) => {
       pollId: poll.id,
       title: poll.title,
       totalVotes,
+      quorum: poll.minimumVotes === null || poll.minimumVotes === undefined
+        ? null
+        : {
+            required: poll.minimumVotes,
+            achieved: totalVotes,
+            met: totalVotes >= poll.minimumVotes,
+            remaining: Math.max(0, poll.minimumVotes - totalVotes)
+          },
       options: options.map(opt => ({
         id: opt.id,
         text: opt.text,

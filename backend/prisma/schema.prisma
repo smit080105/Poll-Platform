@@ -41,6 +41,7 @@ model Poll {
   startDate      DateTime
   endDate        DateTime
   maxVotes       Int?
+  minimumVotes   Int?
   isPublic       Boolean         @default(true)
   status         PollStatus      @default(DRAFT)
   createdAt      DateTime        @default(now())

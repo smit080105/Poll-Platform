@@ -30,6 +30,24 @@ export const validatePollInput = (data) => {
       errors.push('Max votes must be a positive whole number.');
     }
   }
+  if (data.minimumVotes !== undefined && data.minimumVotes !== null && data.minimumVotes !== '') {
+    const minimumVotesNum = Number(data.minimumVotes);
+    if (
+      (typeof data.minimumVotes !== 'number' && typeof data.minimumVotes !== 'string') ||
+      !Number.isInteger(minimumVotesNum) ||
+      minimumVotesNum < 1
+    ) {
+      errors.push('Minimum votes must be a positive whole number.');
+    } else if (
+      data.maxVotes !== undefined &&
+      data.maxVotes !== null &&
+      data.maxVotes !== '' &&
+      Number.isInteger(Number(data.maxVotes)) &&
+      minimumVotesNum > Number(data.maxVotes)
+    ) {
+      errors.push('Minimum votes cannot exceed the maximum vote limit.');
+    }
+  }
 
   if (!Array.isArray(data.options) || data.options.length < 2) {
     errors.push('At least 2 options are required.');

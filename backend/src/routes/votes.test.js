@@ -97,6 +97,31 @@ describe('poll results access', () => {
     });
   });
 
+  it('reports whether the closed poll reached its quorum', async () => {
+    findUnique.mockResolvedValue(makePoll({ minimumVotes: 5 }));
+    optionFindMany.mockResolvedValue([]);
+    ballotCount.mockResolvedValue(3);
+
+    const response = await request(app).get('/api/votes/poll-1/results');
+
+    expect(response.status).toBe(200);
+    expect(response.body.quorum).toEqual({
+      required: 5,
+      achieved: 3,
+      met: false,
+      remaining: 2
+    });
+  });
+
+  it('omits quorum evaluation when no minimum was configured', async () => {
+    findUnique.mockResolvedValue(makePoll({ minimumVotes: null }));
+
+    const response = await request(app).get('/api/votes/poll-1/results');
+
+    expect(response.status).toBe(200);
+    expect(response.body.quorum).toBeNull();
+  });
+
   it('withholds results while an active poll is open', async () => {
     findUnique.mockResolvedValue(makePoll({ endDate: new Date(Date.now() + 60_000) }));
 

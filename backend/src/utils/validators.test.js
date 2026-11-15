@@ -80,6 +80,27 @@ describe('validatePollInput', () => {
     }
   });
 
+  it('accepts a quorum at or below the maximum vote limit', () => {
+    expect(validatePollInput({
+      ...validPoll,
+      maxVotes: 20,
+      minimumVotes: 10
+    })).toEqual([]);
+  });
+
+  it('rejects invalid quorums and quorums above the maximum vote limit', () => {
+    for (const minimumVotes of [0, -1, 1.5, true, {}, 'invalid']) {
+      expect(validatePollInput({ ...validPoll, minimumVotes })).toContain(
+        'Minimum votes must be a positive whole number.'
+      );
+    }
+    expect(validatePollInput({
+      ...validPoll,
+      maxVotes: 10,
+      minimumVotes: 11
+    })).toContain('Minimum votes cannot exceed the maximum vote limit.');
+  });
+
   it('rejects unsupported poll types', () => {
     expect(validatePollInput({ ...validPoll, type: 'MULTIPLE_CHOICE' })).toContain(
       'Poll type must be SINGLE_CHOICE.'
