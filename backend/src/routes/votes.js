@@ -54,6 +54,22 @@ router.post('/:pollId', authenticate, async (req, res) => {
       await prisma.$transaction(async (tx) => {
         await tx.$queryRaw`SELECT id FROM "Poll" WHERE id = ${pollId} FOR UPDATE`;
 
+        const lockedPoll = await tx.poll.findUnique({
+          where: { id: pollId },
+          select: { status: true, startDate: true, endDate: true }
+        });
+        if (!lockedPoll || lockedPoll.status !== 'ACTIVE') {
+          throw new Error('POLL_NOT_ACTIVE');
+        }
+
+        const lockedNow = new Date();
+        if (lockedNow < new Date(lockedPoll.startDate)) {
+          throw new Error('POLL_NOT_STARTED');
+        }
+        if (lockedNow > new Date(lockedPoll.endDate)) {
+          throw new Error('POLL_ENDED');
+        }
+
         const existingParticipation = await tx.participation.findUnique({
           where: { userId_pollId: { userId, pollId } }
         });
@@ -77,6 +93,15 @@ router.post('/:pollId', authenticate, async (req, res) => {
       }
       if (err.message === 'MAX_VOTES_REACHED') {
         return res.status(400).json({ error: 'This poll has reached its maximum number of votes.' });
+      }
+      if (err.message === 'POLL_NOT_ACTIVE') {
+        return res.status(400).json({ error: 'This poll is not currently active.' });
+      }
+      if (err.message === 'POLL_NOT_STARTED') {
+        return res.status(400).json({ error: 'This poll has not started yet.' });
+      }
+      if (err.message === 'POLL_ENDED') {
+        return res.status(400).json({ error: 'This poll has ended.' });
       }
       throw err;
     }
