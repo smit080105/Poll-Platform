@@ -11,9 +11,11 @@ const participationCreate = jest.fn();
 const ballotCreate = jest.fn();
 const queryRaw = jest.fn();
 const transaction = jest.fn();
+const txPollFindUnique = jest.fn();
 
 const tx = {
   $queryRaw: queryRaw,
+  poll: { findUnique: txPollFindUnique },
   participation: { findUnique: participationFindUnique, create: participationCreate },
   ballot: { count: ballotCount, create: ballotCreate }
 };
@@ -61,8 +63,10 @@ describe('poll results access', () => {
     ballotCreate.mockReset();
     queryRaw.mockReset();
     transaction.mockReset();
+    txPollFindUnique.mockReset();
     optionFindMany.mockResolvedValue([]);
     ballotCount.mockResolvedValue(0);
+    txPollFindUnique.mockImplementation(() => findUnique());
     transaction.mockImplementation(callback => callback(tx));
   });
 
@@ -238,6 +242,29 @@ describe('poll results access', () => {
       .send({ optionId: 'option-1' });
 
     expect(response.status).toBe(400);
+    expect(participationCreate).not.toHaveBeenCalled();
+    expect(ballotCreate).not.toHaveBeenCalled();
+  });
+
+  it('rejects a vote that reaches the transaction lock after the poll closes', async () => {
+    findUnique.mockResolvedValue(makePoll({
+      endDate: new Date(Date.now() + 60_000),
+      options: [{ id: 'option-1' }]
+    }));
+    txPollFindUnique.mockResolvedValue({
+      status: 'ACTIVE',
+      startDate: new Date(Date.now() - 60_000),
+      endDate: new Date(Date.now() - 1_000)
+    });
+
+    const response = await request(app)
+      .post('/api/votes/poll-1')
+      .set('Authorization', `Bearer ${participantToken}`)
+      .send({ optionId: 'option-1' });
+
+    expect(response.status).toBe(400);
+    expect(response.body.error).toMatch(/ended/i);
+    expect(participationFindUnique).not.toHaveBeenCalled();
     expect(participationCreate).not.toHaveBeenCalled();
     expect(ballotCreate).not.toHaveBeenCalled();
   });
