@@ -44,6 +44,8 @@ Desktop.ini
 
 # ── Docker ──
 docker/data/
+docker/certs/
+docker/.env
 
 # ── Testing ──
 coverage/

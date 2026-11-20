@@ -128,8 +128,23 @@ docker compose --env-file docker/.env -f docker/docker-compose.yml up --build
 docker compose -f docker/docker-compose.dev.yml up --build
 ```
 
-Production app will be available at **http://localhost:3000**. Set a strong `ORGANIZER_SIGNUP_CODE` in `docker/.env` to enable organizer registration; organizer registrations stay disabled if it is empty.
-Set `CLIENT_URL` in `docker/.env` to the public frontend origin when deploying outside localhost. The frontend uses same-origin `/api` routes through Nginx.
+Set a strong `ORGANIZER_SIGNUP_CODE` in `docker/.env` to enable organizer registration; organizer registrations stay disabled if it is empty.
+Set `CLIENT_URL` in `docker/.env` to the public frontend origin. The frontend uses same-origin `/api` routes through Nginx.
+
+### Production HTTPS
+
+The production Compose stack uses Let's Encrypt and terminates TLS in Nginx.
+
+1. Point the public `DOMAIN` DNS record to the server.
+2. Allow inbound TCP ports `80` and `443`.
+3. Copy `docker/.env.example` to `docker/.env` and set `DOMAIN`, `CERTBOT_EMAIL`, `CLIENT_URL`, `POSTGRES_PASSWORD`, and `JWT_SECRET`.
+4. Start the stack:
+
+```bash
+docker compose --env-file docker/.env -f docker/docker-compose.yml up --build -d
+```
+
+Certificates and renewal state are stored in Docker volumes `certbot_conf` and `certbot_webroot`. The frontend temporarily serves a self-signed certificate until Let's Encrypt issuance succeeds. Renewal runs in the Certbot container; Nginx reloads certificates every 12 hours.
 
 ### Database migrations and existing deployments
 
