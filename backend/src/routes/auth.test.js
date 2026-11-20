@@ -9,7 +9,7 @@ jest.unstable_mockModule('../database.js', () => ({
   prisma: { user: { findUnique, create } }
 }));
 
-const { default: authRoutes } = await import('./auth.js');
+const { default: authRoutes, authLimiter } = await import('./auth.js');
 
 const app = express();
 app.use(express.json());
@@ -22,6 +22,7 @@ describe('authentication request validation', () => {
   beforeEach(() => {
     findUnique.mockClear();
     create.mockClear();
+    authLimiter.resetKey('127.0.0.1');
   });
 
   afterEach(() => {
@@ -52,12 +53,25 @@ describe('authentication request validation', () => {
     expect(findUnique).not.toHaveBeenCalled();
   });
 
+  it.each([
+    ['too short', 'short-pass'],
+    ['over 72 UTF-8 bytes', '😀'.repeat(19)]
+  ])('rejects registration passwords that are %s', async (_description, password) => {
+    const response = await request(app)
+      .post('/api/auth/register')
+      .send({ email: 'user@example.com', password, name: 'Example User' });
+
+    expect(response.status).toBe(400);
+    expect(response.body.error).toMatch(/password/i);
+    expect(findUnique).not.toHaveBeenCalled();
+  });
+
   it('rejects unsupported registration roles', async () => {
     const response = await request(app)
       .post('/api/auth/register')
       .send({
         email: 'user@example.com',
-        password: 'password123',
+        password: 'correct-horse-battery',
         name: 'Example User',
         role: 'ADMIN'
       });
@@ -74,7 +88,7 @@ describe('authentication request validation', () => {
       .post('/api/auth/register')
       .send({
         email: 'organizer@example.com',
-        password: 'password123',
+        password: 'correct-horse-battery',
         name: 'Example Organizer',
         role: 'ORGANIZER'
       });
@@ -91,7 +105,7 @@ describe('authentication request validation', () => {
       .post('/api/auth/register')
       .send({
         email: 'organizer@example.com',
-        password: 'password123',
+        password: 'correct-horse-battery',
         name: 'Example Organizer',
         role: 'ORGANIZER',
         organizerCode: 'incorrect-code'
@@ -115,7 +129,7 @@ describe('authentication request validation', () => {
       .post('/api/auth/register')
       .send({
         email: 'organizer@example.com',
-        password: 'password123',
+        password: 'correct-horse-battery',
         name: 'Example Organizer',
         role: 'ORGANIZER',
         organizerCode: 'trusted-organizer-code'

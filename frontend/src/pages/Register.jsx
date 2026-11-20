@@ -22,7 +22,8 @@ function Register() {
 
     const trimmedName = name.trim();
     const trimmedEmail = email.trim();
-    const normalizedPassword = password.trim();
+    const passwordLength = Array.from(password).length;
+    const passwordBytes = new TextEncoder().encode(password).length;
 
     if (!trimmedName || trimmedName.length < 2) {
       setError('Please enter a valid full name with at least 2 characters.');
@@ -34,8 +35,13 @@ function Register() {
       return;
     }
 
-    if (normalizedPassword.length < 6) {
-      setError('Password must be at least 6 characters.');
+    if (passwordLength < 12) {
+      setError('Password must be at least 12 characters.');
+      return;
+    }
+
+    if (passwordBytes > 72) {
+      setError('Password must not exceed 72 UTF-8 bytes.');
       return;
     }
 
@@ -50,7 +56,7 @@ function Register() {
       const data = await register(
         trimmedName,
         trimmedEmail.toLowerCase(),
-        normalizedPassword,
+        password,
         role,
         organizerCode
       );
@@ -118,12 +124,12 @@ function Register() {
                 id="reg-password"
                 type={showPassword ? 'text' : 'password'}
                 className="form-input"
-                placeholder="Min 6 characters"
+                placeholder="Min 12 characters"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 autoComplete="new-password"
                 required
-                minLength={6}
+                minLength={12}
               />
               <button
                 type="button"
@@ -134,6 +140,7 @@ function Register() {
                 {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
               </button>
             </div>
+            <small>Use at least 12 characters. Passwords are limited to 72 UTF-8 bytes.</small>
           </div>
 
           <div className="form-group">

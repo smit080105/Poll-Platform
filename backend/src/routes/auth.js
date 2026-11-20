@@ -10,7 +10,7 @@ import { logError } from '../utils/logger.js';
 
 const router = Router();
 
-const authLimiter = rateLimit({
+export const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 10, // 10 attempts per window per IP
   message: { error: 'Too many attempts. Please try again in 15 minutes.' },
@@ -62,8 +62,12 @@ router.post('/register', authLimiter, async (req, res) => {
       return res.status(400).json({ error: 'Invalid email format.' });
     }
 
-    if (password.trim().length < 6) {
-      return res.status(400).json({ error: 'Password must be at least 6 characters.' });
+    if (Array.from(password).length < 12) {
+      return res.status(400).json({ error: 'Password must be at least 12 characters.' });
+    }
+
+    if (Buffer.byteLength(password, 'utf8') > 72) {
+      return res.status(400).json({ error: 'Password must not exceed 72 UTF-8 bytes.' });
     }
 
     const userRole = role === undefined
