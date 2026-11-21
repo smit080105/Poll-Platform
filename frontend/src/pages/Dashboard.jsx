@@ -69,7 +69,7 @@ function Dashboard() {
       <div className="dashboard-header">
         <div>
           <h1>Welcome back, {user?.name}</h1>
-          <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginTop: '4px' }}>
+          <p className="dashboard-subtitle">
             Manage your polls and track results
           </p>
         </div>

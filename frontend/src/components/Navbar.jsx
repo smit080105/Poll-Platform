@@ -11,7 +11,7 @@ function Navbar() {
 
   return (
     <nav className="navbar">
-      <Link to="/" className="navbar-brand">
+      <Link to="/" className="navbar-brand" aria-label="PollWave home">
       <div className="brand-icon"><Logo size={18} /></div>
         <span>PollWave</span>
       </Link>
