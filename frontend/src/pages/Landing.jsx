@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { ArrowRight, Zap, Shield, BarChart3 } from 'lucide-react';
+import { ArrowRight, Zap, Shield, BarChart3, CheckCircle2, LockKeyhole, Timer } from 'lucide-react';
 
 function Landing() {
   return (
@@ -36,6 +36,12 @@ function Landing() {
           <Link to="/login" className="btn btn-secondary btn-lg">
             Log In
           </Link>
+        </div>
+
+        <div className="landing-trust" aria-label="PollWave benefits">
+          <span><CheckCircle2 size={15} /> One account, one ballot</span>
+          <span><LockKeyhole size={15} /> Private vote records</span>
+          <span><Timer size={15} /> Scheduled results</span>
         </div>
       </section>
 
