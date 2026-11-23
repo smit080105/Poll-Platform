@@ -9,7 +9,7 @@ jest.unstable_mockModule('../database.js', () => ({
   prisma: { poll: { findUnique } }
 }));
 
-const { default: pollRoutes } = await import('./polls.js');
+const { default: pollRoutes, pollCreateLimiter } = await import('./polls.js');
 
 const app = express();
 app.use(express.json());
@@ -38,6 +38,7 @@ describe('shareable poll access', () => {
   beforeEach(() => {
     process.env.JWT_SECRET = secret;
     findUnique.mockReset();
+    pollCreateLimiter.resetKey('127.0.0.1');
   });
 
   it('allows anonymous access to a published public poll', async () => {
@@ -83,5 +84,15 @@ describe('shareable poll access', () => {
     expect(anonymousResponse.status).toBe(404);
     expect(participantResponse.status).toBe(404);
     expect(organizerResponse.status).toBe(200);
+  });
+
+  it('rate-limits poll creation attempts', async () => {
+    let response;
+    for (let attempt = 0; attempt < 21; attempt += 1) {
+      response = await request(app).post('/api/polls').send({});
+    }
+
+    expect(response.status).toBe(429);
+    expect(response.body.error).toMatch(/poll creation/i);
   });
 });
