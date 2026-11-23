@@ -10,10 +10,18 @@ import { logError } from '../utils/logger.js';
 
 const router = Router();
 
-export const authLimiter = rateLimit({
+export const loginLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 10, // 10 attempts per window per IP
-  message: { error: 'Too many attempts. Please try again in 15 minutes.' },
+  max: 10,
+  message: { error: 'Too many login attempts. Please try again in 15 minutes.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+export const registrationLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 5,
+  message: { error: 'Too many registration attempts. Please try again in 15 minutes.' },
   standardHeaders: true,
   legacyHeaders: false,
 });
@@ -40,7 +48,7 @@ const matchesOrganizerCode = (providedCode, configuredCode) => {
 };
 
 // Register
-router.post('/register', authLimiter, async (req, res) => {
+router.post('/register', registrationLimiter, async (req, res) => {
   try {
     const { email, password, name, role, organizerCode } = req.body ?? {};
     if (typeof email !== 'string' || typeof password !== 'string' || typeof name !== 'string') {
@@ -122,7 +130,7 @@ router.post('/register', authLimiter, async (req, res) => {
 });
 
 // Login
-router.post('/login', authLimiter, async (req, res) => {
+router.post('/login', loginLimiter, async (req, res) => {
   try {
     const { email, password } = req.body ?? {};
     if (typeof email !== 'string' || typeof password !== 'string') {
@@ -144,9 +152,32 @@ router.post('/login', authLimiter, async (req, res) => {
       return res.status(401).json({ error: 'Invalid credentials.' });
     }
 
+    if (user.lockedUntil && new Date(user.lockedUntil) > new Date()) {
+      return res.status(423).json({
+        error: 'Account temporarily locked due to repeated failed login attempts.'
+      });
+    }
+
     const isValidPassword = await bcrypt.compare(password, user.password);
     if (!isValidPassword) {
+      const failedLoginAttempts = (user.failedLoginAttempts || 0) + 1;
+      let lockedUntil = null;
+      if (failedLoginAttempts >= 5) {
+        const lockMinutes = Math.min(60, 5 * (2 ** Math.min(failedLoginAttempts - 5, 3)));
+        lockedUntil = new Date(Date.now() + lockMinutes * 60 * 1000);
+      }
+      await prisma.user.update({
+        where: { id: user.id },
+        data: { failedLoginAttempts, lockedUntil }
+      });
       return res.status(401).json({ error: 'Invalid credentials.' });
+    }
+
+    if ((user.failedLoginAttempts || 0) > 0 || user.lockedUntil) {
+      await prisma.user.update({
+        where: { id: user.id },
+        data: { failedLoginAttempts: 0, lockedUntil: null }
+      });
     }
 
     const token = signJwt(

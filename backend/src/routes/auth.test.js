@@ -4,12 +4,13 @@ import request from 'supertest';
 
 const findUnique = jest.fn();
 const create = jest.fn();
+const update = jest.fn();
 
 jest.unstable_mockModule('../database.js', () => ({
-  prisma: { user: { findUnique, create } }
+  prisma: { user: { findUnique, create, update } }
 }));
 
-const { default: authRoutes, authLimiter } = await import('./auth.js');
+const { default: authRoutes, loginLimiter, registrationLimiter } = await import('./auth.js');
 
 const app = express();
 app.use(express.json());
@@ -22,7 +23,9 @@ describe('authentication request validation', () => {
   beforeEach(() => {
     findUnique.mockClear();
     create.mockClear();
-    authLimiter.resetKey('127.0.0.1');
+    update.mockClear();
+    loginLimiter.resetKey('127.0.0.1');
+    registrationLimiter.resetKey('127.0.0.1');
   });
 
   afterEach(() => {
@@ -140,5 +143,37 @@ describe('authentication request validation', () => {
     expect(create).toHaveBeenCalledWith(expect.objectContaining({
       data: expect.objectContaining({ role: 'ORGANIZER' })
     }));
+  });
+
+  it('rejects login while the account is temporarily locked', async () => {
+    process.env.JWT_SECRET = 'test-jwt-secret';
+    findUnique.mockResolvedValue({
+      id: 'participant-id',
+      email: 'user@example.com',
+      password: 'unused',
+      name: 'Example User',
+      role: 'PARTICIPANT',
+      failedLoginAttempts: 5,
+      lockedUntil: new Date(Date.now() + 5 * 60 * 1000)
+    });
+
+    const response = await request(app)
+      .post('/api/auth/login')
+      .send({ email: 'user@example.com', password: 'incorrect-password' });
+
+    expect(response.status).toBe(423);
+    expect(response.body.error).toMatch(/locked/i);
+  });
+
+  it('rate-limits repeated registration attempts', async () => {
+    let response;
+    for (let attempt = 0; attempt < 6; attempt += 1) {
+      response = await request(app)
+        .post('/api/auth/register')
+        .send({});
+    }
+
+    expect(response.status).toBe(429);
+    expect(response.body.error).toMatch(/registration/i);
   });
 });

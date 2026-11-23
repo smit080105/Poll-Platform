@@ -38,4 +38,17 @@ describe('JWT signing-key rotation', () => {
     process.env.JWT_PREVIOUS_SECRETS = '';
     expect(validateJwtConfiguration).toThrow(/32 bytes/i);
   });
+
+  it('stops accepting a previous key after it is removed from rotation', () => {
+    process.env.JWT_PREVIOUS_SECRETS = 'retired-signing-secret';
+    process.env.JWT_SECRET = 'current-signing-secret';
+
+    const retiredToken = jwt.sign({ id: 'retired-user' }, 'retired-signing-secret', {
+      algorithm: 'HS256'
+    });
+    expect(verifyJwt(retiredToken)).toMatchObject({ id: 'retired-user' });
+
+    process.env.JWT_PREVIOUS_SECRETS = '';
+    expect(() => verifyJwt(retiredToken)).toThrow();
+  });
 });

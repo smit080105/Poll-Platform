@@ -27,9 +27,28 @@ model User {
   password       String
   name           String
   role           UserRole        @default(PARTICIPANT)
+  failedLoginAttempts Int        @default(0)
+  lockedUntil    DateTime?
   createdAt      DateTime        @default(now())
   polls          Poll[]          @relation("CreatedPolls")
   participations Participation[]
+  auditLogs      AuditLog[]
+}
+
+model AuditLog {
+  id         String   @id @default(uuid())
+  actor      User     @relation(fields: [actorId], references: [id], onDelete: Cascade)
+  actorId    String
+  action     String
+  targetType String
+  targetId   String
+  metadata   Json?
+  ipAddress  String?
+  userAgent  String?
+  createdAt  DateTime @default(now())
+
+  @@index([actorId, createdAt])
+  @@index([targetType, targetId])
 }
 
 model Poll {

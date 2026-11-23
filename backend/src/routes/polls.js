@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import rateLimit from 'express-rate-limit';
 import { prisma } from '../database.js';
 import { authenticate, optionalAuthenticate } from '../middleware/auth.js';
 import { roleGuard } from '../middleware/roleGuard.js';
@@ -6,11 +7,20 @@ import { generateShortId } from '../utils/generateId.js';
 import { canAccessPoll } from '../utils/pollAccess.js';
 import { validatePollInput } from '../utils/validators.js';
 import { logError } from '../utils/logger.js';
+import { recordAuditLog } from '../utils/audit.js';
 
 const router = Router();
 
+export const pollCreateLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 20,
+  message: { error: 'Too many poll creation attempts. Please try again later.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
 // Create poll (Organizer only)
-router.post('/', authenticate, roleGuard('ORGANIZER'), async (req, res) => {
+router.post('/', pollCreateLimiter, authenticate, roleGuard('ORGANIZER'), async (req, res) => {
   try {
     const {
       title, description, type, options, startDate, endDate, maxVotes, minimumVotes, isPublic
@@ -48,6 +58,13 @@ router.post('/', authenticate, roleGuard('ORGANIZER'), async (req, res) => {
         }
       },
       include: { options: true }
+    });
+
+    await recordAuditLog(req, {
+      action: 'POLL_CREATED',
+      targetType: 'POLL',
+      targetId: poll.id,
+      metadata: { title: poll.title, isPublic: poll.isPublic }
     });
 
     res.status(201).json(poll);
@@ -248,6 +265,13 @@ router.put('/:id', authenticate, roleGuard('ORGANIZER'), async (req, res) => {
       include: { options: true }
     });
 
+    await recordAuditLog(req, {
+      action: 'POLL_UPDATED',
+      targetType: 'POLL',
+      targetId: updated.id,
+      metadata: { status: updated.status }
+    });
+
     res.json(updated);
   } catch (error) {
     logError(req, error, 'Update poll request failed');
@@ -285,6 +309,13 @@ router.post('/:id/publish', authenticate, roleGuard('ORGANIZER'), async (req, re
       include: { options: true }
     });
 
+    await recordAuditLog(req, {
+      action: 'POLL_PUBLISHED',
+      targetType: 'POLL',
+      targetId: updated.id,
+      metadata: { status: updated.status }
+    });
+
     res.json(updated);
   } catch (error) {
     logError(req, error, 'Publish poll request failed');
@@ -311,6 +342,12 @@ router.delete('/:id', authenticate, roleGuard('ORGANIZER'), async (req, res) => 
       prisma.option.deleteMany({ where: { pollId: req.params.id } }),
       prisma.poll.delete({ where: { id: req.params.id } })
     ]);
+
+    await recordAuditLog(req, {
+      action: 'POLL_DELETED',
+      targetType: 'POLL',
+      targetId: req.params.id
+    });
 
     res.json({ message: 'Poll deleted successfully.' });
   } catch (error) {
