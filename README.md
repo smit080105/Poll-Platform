@@ -137,7 +137,7 @@ The production Compose stack uses Let's Encrypt and terminates TLS in Nginx.
 
 1. Point the public `DOMAIN` DNS record to the server.
 2. Allow inbound TCP ports `80` and `443`.
-3. Copy `docker/.env.example` to `docker/.env` and set `DOMAIN`, `CERTBOT_EMAIL`, `CLIENT_URL`, `POSTGRES_PASSWORD`, and `JWT_SECRET`.
+3. Copy `docker/.env.example` to `docker/.env` and set `DOMAIN`, `CERTBOT_EMAIL`, `CLIENT_URL`, `POSTGRES_PASSWORD`, and `JWT_SECRET`. Generate `JWT_SECRET` with `openssl rand -hex 32`; keep it out of source control and logs.
 4. Start the stack:
 
 ```bash
@@ -145,6 +145,10 @@ docker compose --env-file docker/.env -f docker/docker-compose.yml up --build -d
 ```
 
 Certificates and renewal state are stored in Docker volumes `certbot_conf` and `certbot_webroot`. The frontend temporarily serves a self-signed certificate until Let's Encrypt issuance succeeds. Renewal runs in the Certbot container; Nginx reloads certificates every 12 hours.
+
+### JWT signing-key rotation
+
+The API uses signed bearer JWTs, not separate static API keys. The active `JWT_SECRET` signs new 24-hour tokens. To rotate it without interrupting existing sessions, generate a new secret, set `JWT_PREVIOUS_SECRETS` to the current secret, and replace `JWT_SECRET` with the new one. Restart the backend so new tokens use the new key; both keys will validate tokens during the overlap. After 24 hours, remove the old value from `JWT_PREVIOUS_SECRETS` and restart again. Keep secrets in the deployment environment or a secret manager, not in the repository. Production startup rejects signing keys shorter than 32 bytes.
 
 ### Database migrations and existing deployments
 

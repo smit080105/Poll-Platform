@@ -1,4 +1,4 @@
-import jwt from 'jsonwebtoken';
+import { verifyJwt } from '../utils/jwt.js';
 
 const getToken = (req) => {
   const authHeader = req.headers.authorization;
@@ -8,14 +8,12 @@ const getToken = (req) => {
   return authHeader.slice('Bearer '.length);
 };
 
-const verifyToken = (token) => jwt.verify(token, process.env.JWT_SECRET, { algorithms: ['HS256'] });
-
 export const optionalAuthenticate = (req, res, next) => {
   const token = getToken(req);
   if (token === null) return next();
 
   try {
-    req.user = verifyToken(token);
+    req.user = verifyJwt(token);
     return next();
   } catch {
     return res.status(401).json({ error: 'Invalid or expired token.' });
@@ -30,7 +28,7 @@ export const authenticate = (req, res, next) => {
   }
 
   try {
-    req.user = verifyToken(token);
+    req.user = verifyJwt(token);
     return next();
   } catch {
     return res.status(401).json({ error: 'Invalid or expired token.' });

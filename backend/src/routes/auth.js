@@ -1,11 +1,11 @@
 import { Router } from 'express';
 import bcrypt from 'bcryptjs';
 import { createHash, timingSafeEqual } from 'node:crypto';
-import jwt from 'jsonwebtoken';
 import rateLimit from 'express-rate-limit';
 import { prisma } from '../database.js';
 import { authenticate } from '../middleware/auth.js';
 import { validateEmail } from '../utils/validators.js';
+import { signJwt } from '../utils/jwt.js';
 import { logError } from '../utils/logger.js';
 
 const router = Router();
@@ -103,9 +103,8 @@ router.post('/register', authLimiter, async (req, res) => {
       }
     });
 
-    const token = jwt.sign(
+    const token = signJwt(
       { id: user.id, email: user.email, role: user.role },
-      process.env.JWT_SECRET,
       { expiresIn: '24h' }
     );
 
@@ -150,9 +149,8 @@ router.post('/login', authLimiter, async (req, res) => {
       return res.status(401).json({ error: 'Invalid credentials.' });
     }
 
-    const token = jwt.sign(
+    const token = signJwt(
       { id: user.id, email: user.email, role: user.role },
-      process.env.JWT_SECRET,
       { expiresIn: '24h' }
     );
 

@@ -1,14 +1,17 @@
 import { createServer } from 'http';
 import { prisma } from './database.js';
 import { logger } from './utils/logger.js';
+import { validateJwtConfiguration } from './utils/jwt.js';
 import app from './app.js';
 
 if (!process.env.DATABASE_URL) {
   logger.fatal('Missing required environment variable: DATABASE_URL');
   process.exit(1);
 }
-if (!process.env.JWT_SECRET) {
-  logger.fatal('Missing required environment variable: JWT_SECRET');
+try {
+  validateJwtConfiguration();
+} catch (error) {
+  logger.fatal({ err: error }, 'Invalid JWT signing-key configuration');
   process.exit(1);
 }
 
